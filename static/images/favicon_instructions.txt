@@ -1,0 +1,13 @@
+To create a favicon.ico file for dumped2hire:
+
+1. Use the dumped2hirelogo.png as a base
+2. Resize to 32x32 pixels
+3. Save as favicon.ico in the static/images directory
+
+Alternatively, you can use an online favicon generator like https://favicon.io/ to convert the logo to a favicon.
+
+For now, you can use a free favicon from a CDN like:
+<link rel="icon" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/svgs/solid/arrow-up-right-from-square.svg" type="image/svg+xml">
+
+Or update the HTML to use the logo directly as a favicon:
+<link rel="icon" href="/static/images/dumped2hirelogo.png" type="image/png">

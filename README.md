@@ -1,75 +1,66 @@
 # dumped2hire
 
-A minimalist web application to help job seekers optimize their resumes based on target job descriptions.
+A web application that helps job seekers transform their resumes into targeted career profiles that get them hired.
 
 ## Features
 
-- **Career Profile Generator**: Create a concise employer branding statement using AI
-- **Target Job Description Analysis**: Paste job descriptions for AI-powered analysis
-- **Master Resume Integration**: Use your existing resume as a base for personalized optimization
-- **OpenAI Integration**: Leverages OpenAI's powerful language models to generate tailored career profiles
+- **Career Profile Generator**: Create a concise, impactful career profile statement tailored to specific job descriptions
+- **Keyword Highlighting**: Automatically identifies and highlights important keywords from the job description
+- **Supporting Evidence**: Extracts relevant experience and skills from your master resume
+- **Top Keywords**: Shows the most important keywords to include in your application
 
-## Tech Stack
+## Technology Stack
 
-- **Backend**: Flask (Python)
-- **Frontend**: HTML, JavaScript, Tailwind CSS
+- **Backend**: Python with Flask
+- **Frontend**: HTML, JavaScript, and Tailwind CSS
+- **UI**: Minimalist and sleek design with custom branding
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.7+
-- pip (Python package manager)
-- OpenAI API key
+- pip
 
 ### Installation
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd d2h2
-   ```
+1. Clone the repository
+```
+git clone https://github.com/yourusername/dumped2hire.git
+cd dumped2hire
+```
 
-2. Create a virtual environment (optional but recommended):
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+2. Install dependencies
+```
+pip install -r requirements.txt
+```
 
-3. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+3. Set up environment variables
+```
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-4. Set up your OpenAI API key:
-   - Rename `.env.example` to `.env` (or create a new `.env` file)
-   - Add your OpenAI API key to the `.env` file:
-     ```
-     OPENAI_API_KEY=your_openai_api_key_here
-     ```
+4. Run the application
+```
+python -c "from app import app; app.run(debug=True, port=5001)"
+```
 
-5. Run the application:
-   ```
-   python app.py
-   ```
-
-6. Open your browser and navigate to:
-   ```
-   http://127.0.0.1:5000/
-   ```
+5. Open your browser and navigate to `http://localhost:5001`
 
 ## Usage
 
-1. Paste the target job description in the designated box
-2. Paste your master resume in the designated box
-3. Click "Generate" to process the information
-4. The AI will analyze both inputs and generate a tailored career profile
-5. The generated career profile will appear in the Career Profile box
-6. You can edit the generated profile as needed or regenerate with different inputs
+1. Enter your target job description in the "Target Job Description" field
+2. Paste your master resume in the "Master Resume" field
+3. Click "Generate" to create your tailored career profile
+4. Review the highlighted keywords and supporting evidence
+5. Save your career profile for use in your job application
 
-## Future Enhancements
+## License
 
-- AI-powered resume optimization
-- Keyword matching and suggestions
-- Exportable formatted resumes
-- User accounts to save multiple profiles
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Inspired by the need to help job seekers stand out in competitive markets
+- Special thanks to all contributors and beta testers
