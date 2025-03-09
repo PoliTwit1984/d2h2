@@ -1,0 +1,74 @@
+/* Custom CSS for dumped2hire beyond Tailwind */
+
+/* Smooth transitions */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Keyword highlighting */
+mark {
+    background-color: #FEFCBF; /* Light yellow */
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Custom scrollbar for textareas */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Focus styles */
+.focus-visible:focus {
+    outline: 2px solid #38B2AC;
+    outline-offset: 2px;
+}
+
+/* Custom placeholder color */
+::placeholder {
+    color: #a0aec0;
+    opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .section-box {
+        padding: 1rem;
+    }
+    
+    .section-header {
+        font-size: 1.1rem;
+    }
+}
+
+/* Print styles for future export functionality */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .section-box {
+        box-shadow: none;
+        border: 1px solid #e2e8f0;
+        break-inside: avoid;
+    }
+    
+    .no-print {
+        display: none;
+    }
+}
