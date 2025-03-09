@@ -344,5 +344,190 @@ def save_profile():
             'message': f'Error saving profile: {str(e)}'
         }), 500
 
+@app.route('/generate-competencies', methods=['POST'])
+def generate_competencies():
+    """Generate core competencies based on job description and master resume."""
+    # Get form data
+    job_description = request.form.get('job_description', '')
+    master_resume = request.form.get('master_resume', '')
+    
+    # Check if required fields are provided
+    if not job_description or not master_resume:
+        return jsonify({
+            'success': False,
+            'message': 'Job description and master resume are required.'
+        }), 400
+    
+    try:
+        # Prepare the prompt for OpenAI
+        prompt = f"""You are a resume-writing assistant specialized in identifying core competencies that match a job description and are supported by a candidate's resume.
+
+Your task is to extract up to 15 core competencies from the job description that are also evident in the candidate's resume. Format these as a comma-separated list.
+
+IMPORTANT INSTRUCTIONS:
+1. Focus on broader competencies (e.g., "Strategic Planning", "Team Leadership", "Process Optimization") rather than specific technical skills or tools.
+2. Do NOT include technical skills (computer software, technical certifications, etc.) - these belong in a skills section.
+3. For example, "Software Development" would be a competency, while "Python" would be a skill (so include Software Development, not Python).
+4. Thoroughly scan the ENTIRE resume, not just the most recent job experience.
+5. Only include competencies that are both mentioned in the job description AND supported by evidence in the resume.
+6. Include as many relevant competencies as possible, up to 15, as long as they are truly relevant to both the job description and resume.
+7. Format the output as a simple comma-separated list (e.g., "Strategic Planning, Team Leadership, Process Optimization, Budget Management").
+8. Each competency should be capitalized and separated by a comma and space.
+
+Job Description:
+{job_description}
+
+Master Resume:
+{master_resume}
+
+Generate a comma-separated list of up to 15 core competencies:"""
+
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4.5-preview",  # Using the latest model
+            messages=[
+                {"role": "system", "content": "You are a professional resume writer specializing in identifying core competencies."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        # Extract the generated competencies
+        generated_competencies = response.choices[0].message.content.strip()
+        
+        # Extract keywords from job description using OpenAI
+        keywords = extract_keywords_with_openai(job_description)
+        
+        # Find citations in the master resume for the competencies
+        citations_prompt = f"""
+        I have a list of core competencies and a master resume. I need you to thoroughly scan the ENTIRE resume to identify where each competency 
+        is supported by evidence in the master resume.
+        
+        IMPORTANT INSTRUCTIONS:
+        1. Scan the ENTIRE resume, not just the most recent job experience.
+        2. For each competency, find the STRONGEST and most relevant evidence 
+           from ANY part of the resume that demonstrates this skill or competency.
+        3. If multiple instances of a competency exist across different jobs/experiences, choose the strongest example
+           that best demonstrates the depth of experience, regardless of how recent it is.
+        4. Look for evidence across all sections: work experience, projects, education, certifications, etc.
+        
+        Return a JSON object where:
+        - Each key is one of the competencies
+        - Each value is a brief excerpt from the master resume (1-2 sentences) that provides the strongest evidence for this competency
+        
+        Core Competencies:
+        {generated_competencies}
+        
+        Master Resume:
+        {master_resume}
+        """
+        
+        citations_response = client.chat.completions.create(
+            model="gpt-4.5-preview",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that finds evidence in resumes."},
+                {"role": "user", "content": citations_prompt}
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=800,
+            temperature=0.3
+        )
+        
+        # Extract the JSON response
+        citations_content = citations_response.choices[0].message.content.strip()
+        citations_data = json.loads(citations_content)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Core competencies generated successfully!',
+            'competencies': generated_competencies,
+            'keywords': keywords[:15],  # Limit to top 15 keywords
+            'citations': citations_data
+        })
+    
+    except Exception as e:
+        # Handle any errors
+        return jsonify({
+            'success': False,
+            'message': f'Error generating core competencies: {str(e)}'
+        }), 500
+
+@app.route('/save-competencies', methods=['POST'])
+def save_competencies():
+    """Save the core competencies to a text file and send it as a download."""
+    try:
+        # Get the competencies content from the request
+        competencies_content = request.form.get('competencies_content', '')
+        
+        if not competencies_content:
+            return jsonify({
+                'success': False,
+                'message': 'No content provided to save.'
+            }), 400
+        
+        # Create a timestamp for the filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"core_competencies_{timestamp}.txt"
+        
+        # Create a file-like object in memory
+        competencies_file = io.BytesIO()
+        competencies_file.write(competencies_content.encode('utf-8'))
+        competencies_file.seek(0)
+        
+        # Create a response with the file
+        response = make_response(send_file(
+            competencies_file,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/plain'
+        ))
+        
+        return response
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error saving competencies: {str(e)}'
+        }), 500
+
+@app.route('/save-resume', methods=['POST'])
+def save_resume():
+    """Save the complete customized resume to a text file and send it as a download."""
+    try:
+        # Get the resume content from the request
+        resume_content = request.form.get('resume_content', '')
+        
+        if not resume_content:
+            return jsonify({
+                'success': False,
+                'message': 'No content provided to save.'
+            }), 400
+        
+        # Create a timestamp for the filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"customized_resume_{timestamp}.txt"
+        
+        # Create a file-like object in memory
+        resume_file = io.BytesIO()
+        resume_file.write(resume_content.encode('utf-8'))
+        resume_file.seek(0)
+        
+        # Create a response with the file
+        response = make_response(send_file(
+            resume_file,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/plain'
+        ))
+        
+        return response
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error saving resume: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

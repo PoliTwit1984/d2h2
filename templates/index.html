@@ -49,7 +49,7 @@
             <div class="flex justify-center mb-2">
                 <img src="/static/images/dumped2hirelogo.png" alt="dumped2hire logo" class="h-16 mb-2">
             </div>
-            <p class="text-gray-600 text-sm">Transform your resume into targeted career profiles that get you hired</p>
+            <p class="tagline">Unlock your next chapter.</p>
         </header>
         
         <main>
@@ -69,12 +69,26 @@
                     </div>
                     <div class="relative">
                         <textarea id="careerProfile" name="career_profile" class="input-area h-24" placeholder="Enter your career profile..."></textarea>
-                        <button id="saveProfileBtn" class="absolute bottom-3 right-3 px-2 py-1 rounded text-xs hidden" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" title="Save to text file">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                            </svg>
-                            Save
-                        </button>
+                        <div class="absolute bottom-3 right-3 flex space-x-2">
+                            <button id="generateProfileBtn" class="px-2 py-1 rounded text-xs" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" title="Generate profile">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Generate
+                            </button>
+                            <button id="saveProfileBtn" class="px-2 py-1 rounded text-xs hidden" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" title="Save to text file">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                                Save
+                            </button>
+                            <button id="nextBtn" class="px-2 py-1 rounded text-xs hidden" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" title="Next section">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                                Next
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Highlighted Profile (initially hidden) -->
@@ -120,15 +134,75 @@
                     </div>
                 </div>
                 
-                <!-- Generate Button -->
-                <div class="text-center mb-6">
-                    <button type="submit" class="btn-primary flex items-center justify-center mx-auto" style="background: linear-gradient(to right, #2E86AB, #2ECC71);">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor" style="color: white;">
+                <!-- Core Competencies Section (initially hidden) -->
+                <div id="coreCompetenciesSection" class="section-box bg-background bg-opacity-50 hidden">
+                    <h2 class="section-header flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
                         </svg>
-                        Generate
-                    </button>
+                        CORE COMPETENCIES
+                    </h2>
+                    <div class="mb-4 text-sm">
+                        <p class="mb-2">List core competencies that align with the job description. These should be specific skills or abilities that make you a strong candidate. The system will generate up to 15 relevant competencies based on your resume and the job description.</p>
+                        <p class="mb-2"><strong>Example:</strong></p>
+                        <ul class="list-disc pl-5 italic">
+                            <li>Strategic Planning & Execution</li>
+                            <li>Team Leadership & Development</li>
+                            <li>Process Optimization</li>
+                            <li>Cross-functional Collaboration</li>
+                            <li>Budget Management</li>
+                            <li>Change Management</li>
+                            <li>Stakeholder Communication</li>
+                        </ul>
+                    </div>
+                    <div class="relative">
+                        <textarea id="coreCompetencies" name="core_competencies" class="input-area h-32" placeholder="Enter your core competencies (one per line)..."></textarea>
+                        <div class="absolute bottom-3 right-3 flex space-x-2">
+                            <button id="saveCompetenciesBtn" class="px-2 py-1 rounded text-xs" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" title="Save to text file">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                                Save
+                            </button>
+                            <button id="generateCompetenciesBtn" class="px-2 py-1 rounded text-xs" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" title="Generate competencies">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Generate
+                            </button>
+                            <button id="backBtn" class="px-2 py-1 rounded text-xs" style="background-color: rgba(107, 114, 128, 0.1); color: #6B7280; border: 1px solid rgba(107, 114, 128, 0.2);" title="Back to Career Profile">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#6B7280">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Back
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Competencies Citations (initially hidden) -->
+                    <div id="competenciesCitationsSection" class="mt-4 p-4 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 134, 171, 0.3);">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            Supporting Evidence from Your Resume
+                        </h3>
+                        <div id="competenciesCitationsContainer" class="text-sm"></div>
+                    </div>
+                    
+                    <!-- Competencies Keywords List (initially hidden) -->
+                    <div id="competenciesKeywordsList" class="mt-4 p-3 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 204, 113, 0.3);">
+                        <h3 class="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" style="color: #2ECC71;" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            Additional Keywords You May Want to Include
+                        </h3>
+                        <div id="competenciesKeywordsContainer" class="flex flex-wrap gap-1.5"></div>
+                    </div>
                 </div>
+                
+                <!-- Generate Button removed -->
                 
                 <!-- Target Job Description Section -->
                 <div class="section-box">
@@ -152,6 +226,28 @@
                     </h2>
                     <textarea id="masterResume" name="master_resume" class="input-area h-48" placeholder="Paste your master resume here..."></textarea>
                 </div>
+                
+                <!-- Customized Resume Section -->
+                <div class="section-box">
+                    <h2 class="section-header flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
+                        </svg>
+                        CUSTOMIZED RESUME
+                    </h2>
+                    <div id="customizedResume" class="p-4 bg-white rounded-md border border-gray-200 min-h-[300px] font-mono text-sm whitespace-pre-wrap">
+                        <!-- Content will be added here dynamically -->
+                        <div class="text-gray-400 italic">Your customized resume will appear here as you save sections...</div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button id="saveCustomizedResumeBtn" class="px-3 py-2 rounded text-sm" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" title="Save to text file">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            Save Complete Resume
+                        </button>
+                    </div>
+                </div>
             </form>
             
             <!-- Result Message -->
@@ -160,7 +256,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" style="color: #2ECC71;" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
-                    Career profile generated successfully!
+                    <span id="resultMessageText">Generated successfully!</span>
                 </p>
             </div>
         </main>
@@ -175,7 +271,87 @@
             const jobDescriptionTextarea = document.getElementById('jobDescription');
             const masterResumeTextarea = document.getElementById('masterResume');
             
-            // Save button click handler
+            // Section navigation variables
+            const careerProfileSection = document.querySelector('.section-box');
+            const coreCompetenciesSection = document.getElementById('coreCompetenciesSection');
+            const nextBtn = document.getElementById('nextBtn');
+            const backBtn = document.getElementById('backBtn');
+            const coreCompetenciesTextarea = document.getElementById('coreCompetencies');
+            const saveCompetenciesBtn = document.getElementById('saveCompetenciesBtn');
+            
+            // Next button click handler
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Hide Career Profile section and show Core Competencies section
+                careerProfileSection.classList.add('hidden');
+                coreCompetenciesSection.classList.remove('hidden');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+            
+            // Back button click handler
+            backBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Hide Core Competencies section and show Career Profile section
+                coreCompetenciesSection.classList.add('hidden');
+                careerProfileSection.classList.remove('hidden');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+            
+            // Customized Resume variables
+            const customizedResumeContainer = document.getElementById('customizedResume');
+            const saveCustomizedResumeBtn = document.getElementById('saveCustomizedResumeBtn');
+            
+            // Function to update the customized resume
+            function updateCustomizedResume() {
+                // Clear the placeholder text if it exists
+                const placeholder = customizedResumeContainer.querySelector('.text-gray-400');
+                if (placeholder) {
+                    customizedResumeContainer.innerHTML = '';
+                }
+                
+                // Get user information (this would normally come from user input)
+                const userInfo = `St. Louis, MO
+(314) 378-1486
+joe.wilson@live.com
+https://www.linkedin.com/in/joewilsonjr/
+
+Joe Wilson
+${'-'.repeat(50)}`;
+                
+                // Get career profile
+                const careerProfileContent = careerProfileTextarea.value.trim();
+                const careerProfileSection = careerProfileContent ? 
+                    `CAREER PROFILE
+${careerProfileContent}
+
+` : '';
+                
+                // Get core competencies
+                const competenciesContent = coreCompetenciesTextarea.value.trim();
+                const competenciesSection = competenciesContent ? 
+                    `Core competencies include: ${competenciesContent}
+
+` : '';
+                
+                // Combine all sections
+                const resumeContent = `${userInfo}
+
+${careerProfileSection}${competenciesSection}EXPERIENCE
+`;
+                
+                // Update the customized resume container
+                customizedResumeContainer.textContent = resumeContent;
+            }
+            
+            // Save Profile button click handler
             const saveProfileBtn = document.getElementById('saveProfileBtn');
             saveProfileBtn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -207,6 +383,418 @@
                 document.body.appendChild(form);
                 form.submit();
                 document.body.removeChild(form);
+                
+                // Update the customized resume
+                updateCustomizedResume();
+                
+                // Show the Next button
+                nextBtn.classList.remove('hidden');
+            });
+            
+            // Generate Profile button click handler
+            const generateProfileBtn = document.getElementById('generateProfileBtn');
+            generateProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Validate inputs
+                if (!jobDescriptionTextarea.value.trim()) {
+                    showAlert('Please paste a job description.');
+                    return;
+                }
+                
+                if (!masterResumeTextarea.value.trim()) {
+                    showAlert('Please paste your master resume.');
+                    return;
+                }
+                
+                // Show loading state
+                generateProfileBtn.disabled = true;
+                generateProfileBtn.classList.add('opacity-75');
+                generateProfileBtn.innerHTML = `
+                    <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                    <span>Generating...</span>
+                `;
+                
+                const formData = new FormData();
+                formData.append('job_description', jobDescriptionTextarea.value);
+                formData.append('master_resume', masterResumeTextarea.value);
+                
+                fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Reset button state
+                    generateProfileBtn.disabled = false;
+                    generateProfileBtn.classList.remove('opacity-75');
+                    generateProfileBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate
+                    `;
+                    
+                    if (data.success) {
+                        // Update the career profile textarea with the generated content
+                        if (data.career_profile) {
+                            careerProfileTextarea.value = data.career_profile;
+                            
+                            // Highlight the career profile section
+                            careerProfileTextarea.classList.add('ring-2', 'ring-green-500');
+                            setTimeout(() => {
+                                careerProfileTextarea.classList.remove('ring-2', 'ring-green-500');
+                            }, 2000);
+                            
+                            // Show the save button
+                            saveProfileBtn.classList.remove('hidden');
+                            
+                            // Display the highlighted profile if available
+                            if (data.marked_profile) {
+                                const highlightedProfile = document.getElementById('highlightedProfile');
+                                const markedProfileContent = document.getElementById('markedProfileContent');
+                                
+                                // Set the HTML content with highlighted keywords
+                                markedProfileContent.innerHTML = data.marked_profile;
+                                
+                                // Show the highlighted profile
+                                highlightedProfile.classList.remove('hidden');
+                                
+                                // Set up toggle functionality
+                                const toggleButton = document.getElementById('toggleHighlight');
+                                let showingHighlighted = true;
+                                
+                                toggleButton.addEventListener('click', function() {
+                                    if (showingHighlighted) {
+                                        // Switch to plain text
+                                        markedProfileContent.textContent = data.career_profile;
+                                        toggleButton.textContent = 'Show Highlights';
+                                    } else {
+                                        // Switch back to highlighted text
+                                        markedProfileContent.innerHTML = data.marked_profile;
+                                        toggleButton.textContent = 'Show Plain Text';
+                                    }
+                                    showingHighlighted = !showingHighlighted;
+                                });
+                            }
+                            
+                            // Display citations if available
+                            if (data.citations && Object.keys(data.citations).length > 0) {
+                                const citationsSection = document.getElementById('citationsSection');
+                                const citationsContainer = document.getElementById('citationsContainer');
+                                
+                                // Clear previous citations
+                                citationsContainer.innerHTML = '';
+                                
+                                // Add each citation
+                                Object.entries(data.citations).forEach(([competency, evidence]) => {
+                                    const citationDiv = document.createElement('div');
+                                    citationDiv.className = 'citation-item mb-3 pb-3 border-b border-gray-100 last:border-0';
+                                    
+                                    const competencyEl = document.createElement('div');
+                                    competencyEl.className = 'citation-competency font-medium text-primary mb-1 flex items-center';
+                                    
+                                    // Add a small icon before the competency
+                                    const iconSpan = document.createElement('span');
+                                    iconSpan.innerHTML = `
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    `;
+                                    competencyEl.appendChild(iconSpan);
+                                    
+                                    const textSpan = document.createElement('span');
+                                    textSpan.textContent = competency;
+                                    competencyEl.appendChild(textSpan);
+                                    
+                                    const evidenceEl = document.createElement('div');
+                                    evidenceEl.className = 'citation-evidence text-gray-600 text-xs italic';
+                                    evidenceEl.textContent = evidence;
+                                    
+                                    citationDiv.appendChild(competencyEl);
+                                    citationDiv.appendChild(evidenceEl);
+                                    citationsContainer.appendChild(citationDiv);
+                                });
+                                
+                                // Show the citations section
+                                citationsSection.classList.remove('hidden');
+                            }
+                            
+                            // Display keywords if available
+                            if (data.keywords && data.keywords.length > 0) {
+                                const keywordsList = document.getElementById('keywordsList');
+                                const keywordsContainer = document.getElementById('keywordsContainer');
+                                
+                                // Clear previous keywords
+                                keywordsContainer.innerHTML = '';
+                                
+                                // Add each keyword as a badge
+                                data.keywords.forEach(keyword => {
+                                    const keywordBadge = document.createElement('span');
+                                    keywordBadge.className = 'keyword-badge';
+                                    keywordBadge.textContent = keyword;
+                                    keywordsContainer.appendChild(keywordBadge);
+                                });
+                                
+                                // Show the keywords list
+                                keywordsList.classList.remove('hidden');
+                            }
+                        }
+                        
+                        // Show success message
+                        document.getElementById('resultMessageText').textContent = 'Career profile generated successfully!';
+                        resultMessage.classList.remove('hidden');
+                        
+                        // Hide the message after 5 seconds
+                        setTimeout(() => {
+                            resultMessage.classList.add('hidden');
+                        }, 5000);
+                    } else {
+                        // Show error message
+                        showAlert(data.message || 'An error occurred while generating the career profile.');
+                    }
+                })
+                .catch(error => {
+                    // Reset button state
+                    generateProfileBtn.disabled = false;
+                    generateProfileBtn.classList.remove('opacity-75');
+                    generateProfileBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate
+                    `;
+                    
+                    console.error('Error:', error);
+                    showAlert('An error occurred. Please try again.');
+                });
+            });
+            
+            // Generate Competencies button click handler
+            const generateCompetenciesBtn = document.getElementById('generateCompetenciesBtn');
+            generateCompetenciesBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Validate inputs
+                if (!jobDescriptionTextarea.value.trim()) {
+                    showAlert('Please paste a job description.');
+                    return;
+                }
+                
+                if (!masterResumeTextarea.value.trim()) {
+                    showAlert('Please paste your master resume.');
+                    return;
+                }
+                
+                // Show loading state
+                generateCompetenciesBtn.disabled = true;
+                generateCompetenciesBtn.classList.add('opacity-75');
+                generateCompetenciesBtn.innerHTML = `
+                    <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                    <span>Generating...</span>
+                `;
+                
+                const formData = new FormData();
+                formData.append('job_description', jobDescriptionTextarea.value);
+                formData.append('master_resume', masterResumeTextarea.value);
+                
+                fetch('/generate-competencies', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Reset button state
+                    generateCompetenciesBtn.disabled = false;
+                    generateCompetenciesBtn.classList.remove('opacity-75');
+                    generateCompetenciesBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate
+                    `;
+                    
+                    if (data.success) {
+                        // Update the core competencies textarea with the generated content
+                        if (data.competencies) {
+                            coreCompetenciesTextarea.value = data.competencies;
+                            
+                            // Highlight the core competencies section
+                            coreCompetenciesTextarea.classList.add('ring-2', 'ring-green-500');
+                            setTimeout(() => {
+                                coreCompetenciesTextarea.classList.remove('ring-2', 'ring-green-500');
+                            }, 2000);
+                            
+                            // Display citations if available
+                            if (data.citations && Object.keys(data.citations).length > 0) {
+                                const competenciesCitationsSection = document.getElementById('competenciesCitationsSection');
+                                const competenciesCitationsContainer = document.getElementById('competenciesCitationsContainer');
+                                
+                                // Clear previous citations
+                                competenciesCitationsContainer.innerHTML = '';
+                                
+                                // Add each citation
+                                Object.entries(data.citations).forEach(([competency, evidence]) => {
+                                    const citationDiv = document.createElement('div');
+                                    citationDiv.className = 'citation-item mb-3 pb-3 border-b border-gray-100 last:border-0';
+                                    
+                                    const competencyEl = document.createElement('div');
+                                    competencyEl.className = 'citation-competency font-medium text-primary mb-1 flex items-center';
+                                    
+                                    // Add a small icon before the competency
+                                    const iconSpan = document.createElement('span');
+                                    iconSpan.innerHTML = `
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    `;
+                                    competencyEl.appendChild(iconSpan);
+                                    
+                                    const textSpan = document.createElement('span');
+                                    textSpan.textContent = competency;
+                                    competencyEl.appendChild(textSpan);
+                                    
+                                    const evidenceEl = document.createElement('div');
+                                    evidenceEl.className = 'citation-evidence text-gray-600 text-xs italic';
+                                    evidenceEl.textContent = evidence;
+                                    
+                                    citationDiv.appendChild(competencyEl);
+                                    citationDiv.appendChild(evidenceEl);
+                                    competenciesCitationsContainer.appendChild(citationDiv);
+                                });
+                                
+                                // Show the citations section
+                                competenciesCitationsSection.classList.remove('hidden');
+                            }
+                            
+                            // Display keywords if available
+                            if (data.keywords && data.keywords.length > 0) {
+                                const competenciesKeywordsList = document.getElementById('competenciesKeywordsList');
+                                const competenciesKeywordsContainer = document.getElementById('competenciesKeywordsContainer');
+                                
+                                // Clear previous keywords
+                                competenciesKeywordsContainer.innerHTML = '';
+                                
+                                // Add each keyword as a badge
+                                data.keywords.forEach(keyword => {
+                                    const keywordBadge = document.createElement('span');
+                                    keywordBadge.className = 'keyword-badge';
+                                    keywordBadge.textContent = keyword;
+                                    competenciesKeywordsContainer.appendChild(keywordBadge);
+                                });
+                                
+                                // Show the keywords list
+                                competenciesKeywordsList.classList.remove('hidden');
+                            }
+                        }
+                        
+                        // Show success message
+                        resultMessage.textContent = 'Core competencies generated successfully!';
+                        resultMessage.classList.remove('hidden');
+                        
+                        // Hide the message after 5 seconds
+                        setTimeout(() => {
+                            resultMessage.classList.add('hidden');
+                        }, 5000);
+                    } else {
+                        // Show error message
+                        showAlert(data.message || 'An error occurred while generating the core competencies.');
+                    }
+                })
+                .catch(error => {
+                    // Reset button state
+                    generateCompetenciesBtn.disabled = false;
+                    generateCompetenciesBtn.classList.remove('opacity-75');
+                    generateCompetenciesBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate
+                    `;
+                    
+                    console.error('Error:', error);
+                    showAlert('An error occurred. Please try again.');
+                });
+            });
+            
+            // Save Competencies button click handler
+            saveCompetenciesBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const competenciesContent = coreCompetenciesTextarea.value.trim();
+                if (!competenciesContent) {
+                    showAlert('No content to save.');
+                    return;
+                }
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('competencies_content', competenciesContent);
+                
+                // Submit form to save endpoint
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/save-competencies';
+                
+                // Create hidden input for competencies content
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'competencies_content';
+                input.value = competenciesContent;
+                form.appendChild(input);
+                
+                // Add form to document and submit
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+                
+                // Update the customized resume
+                updateCustomizedResume();
+            });
+            
+            // Save Complete Resume button click handler
+            saveCustomizedResumeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const resumeContent = customizedResumeContainer.textContent.trim();
+                if (!resumeContent || resumeContent.includes('Your customized resume will appear here')) {
+                    showAlert('No content to save. Please generate and save at least one section first.');
+                    return;
+                }
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('resume_content', resumeContent);
+                
+                // Submit form to save endpoint
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/save-resume';
+                
+                // Create hidden input for resume content
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'resume_content';
+                input.value = resumeContent;
+                form.appendChild(input);
+                
+                // Add form to document and submit
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+                
+                // Show success message
+                document.getElementById('resultMessageText').textContent = 'Complete resume saved successfully!';
+                resultMessage.classList.remove('hidden');
+                
+                // Hide the message after 5 seconds
+                setTimeout(() => {
+                    resultMessage.classList.add('hidden');
+                }, 5000);
             });
             
             form.addEventListener('submit', function(e) {
@@ -225,8 +813,16 @@
                 
                 // Show loading state
                 generateButton.disabled = true;
-                generateButton.textContent = 'Generating...';
                 generateButton.classList.add('opacity-75');
+                
+                // Show spinner, hide icon
+                const spinner = generateButton.querySelector('.spinner');
+                const icon = generateButton.querySelector('.icon-generate');
+                const buttonText = generateButton.querySelector('.button-text');
+                
+                spinner.classList.remove('hidden');
+                icon.classList.add('hidden');
+                buttonText.textContent = 'Generating...';
                 
                 const formData = new FormData(form);
                 
@@ -238,8 +834,12 @@
                 .then(data => {
                     // Reset button state
                     generateButton.disabled = false;
-                    generateButton.textContent = 'Generate';
                     generateButton.classList.remove('opacity-75');
+                    
+                    // Hide spinner, show icon
+                    spinner.classList.add('hidden');
+                    icon.classList.remove('hidden');
+                    buttonText.textContent = 'Generate';
                     
                     if (data.success) {
                         // Update the career profile textarea with the generated content
@@ -349,6 +949,7 @@
                         }
                         
                         // Show success message
+                        document.getElementById('resultMessageText').textContent = 'Career profile generated successfully!';
                         resultMessage.classList.remove('hidden');
                         
                         // Hide the message after 5 seconds
@@ -363,8 +964,12 @@
                 .catch(error => {
                     // Reset button state
                     generateButton.disabled = false;
-                    generateButton.textContent = 'Generate';
                     generateButton.classList.remove('opacity-75');
+                    
+                    // Hide spinner, show icon
+                    spinner.classList.add('hidden');
+                    icon.classList.remove('hidden');
+                    buttonText.textContent = 'Generate';
                     
                     console.error('Error:', error);
                     showAlert('An error occurred. Please try again.');

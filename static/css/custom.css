@@ -1,7 +1,7 @@
 /* Custom CSS for dumped2hire beyond Tailwind */
 
 /* Import modern fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500&display=swap');
 
 /* Color variables */
 :root {
@@ -292,4 +292,30 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 #resultMessage {
     animation: fadeInUp 0.3s ease-out;
+}
+
+/* Tagline styling */
+.tagline {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 1.5rem;
+    color: #333333;
+    margin-top: 0.5rem;
+    letter-spacing: 0.01em;
+}
+
+/* Spinner styling */
+.spinner {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.75rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
