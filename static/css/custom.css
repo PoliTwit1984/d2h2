@@ -11,6 +11,12 @@
     --d2h-light-green: rgba(46, 204, 113, 0.1);
     --d2h-dark-blue: #236c8a;
     --d2h-dark-green: #27ae60;
+    --d2h-red: #e74c3c;
+    --d2h-orange: #f39c12;
+    --d2h-yellow: #f1c40f;
+    --d2h-light-red: rgba(231, 76, 60, 0.1);
+    --d2h-light-orange: rgba(243, 156, 18, 0.1);
+    --d2h-light-yellow: rgba(241, 196, 15, 0.1);
 }
 
 /* Base styles */
@@ -128,6 +134,52 @@ mark:hover {
     background-color: rgba(46, 204, 113, 0.2);
 }
 
+/* Priority-based keyword highlighting */
+mark.high-priority-keyword {
+    background-color: var(--d2h-light-red);
+    color: var(--d2h-red);
+    font-weight: 600;
+    border-bottom: 1px solid var(--d2h-red);
+}
+
+mark.high-priority-keyword:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+}
+
+mark.medium-priority-keyword {
+    background-color: var(--d2h-light-orange);
+    color: var(--d2h-orange);
+    font-weight: 500;
+    border-bottom: 1px solid var(--d2h-orange);
+}
+
+mark.medium-priority-keyword:hover {
+    background-color: rgba(243, 156, 18, 0.2);
+}
+
+mark.low-priority-keyword {
+    background-color: var(--d2h-light-yellow);
+    color: var(--d2h-yellow);
+    font-weight: 500;
+    border-bottom: 1px solid var(--d2h-yellow);
+}
+
+mark.low-priority-keyword:hover {
+    background-color: rgba(241, 196, 15, 0.2);
+}
+
+/* Highlighted job description container */
+#highlightedJobDescription {
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    max-height: 400px;
+    overflow-y: auto;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
 /* Keyword badges */
 .keyword-badge {
     background-color: var(--d2h-light-blue);
@@ -137,10 +189,56 @@ mark:hover {
     font-size: 0.75rem;
     font-weight: 500;
     transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
 }
 
 .keyword-badge:hover {
     background-color: rgba(46, 134, 171, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Keyword score styling */
+.keyword-badge .text-xs {
+    font-size: 0.65rem;
+    opacity: 0.8;
+    margin-top: 0.1rem;
+}
+
+/* Keyword badge with score */
+.keyword-badge div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Editable keywords container */
+#extractedKeywordsContainer {
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    min-height: 3rem;
+}
+
+/* Keyword input container */
+#keywordInputContainer {
+    margin-top: 1rem;
+}
+
+#newKeywordInput {
+    height: 2.5rem;
+    font-size: 0.875rem;
+}
+
+#addKeywordBtn {
+    height: 2.5rem;
+    transition: all 0.2s ease;
+}
+
+#addKeywordBtn:hover {
+    background-color: rgba(46, 204, 113, 0.2);
     transform: translateY(-1px);
 }
 
@@ -318,4 +416,38 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Priority legend */
+.priority-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.priority-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.priority-indicator {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.high-priority-indicator {
+    background-color: var(--d2h-red);
+}
+
+.medium-priority-indicator {
+    background-color: var(--d2h-orange);
+}
+
+.low-priority-indicator {
+    background-color: var(--d2h-yellow);
 }
