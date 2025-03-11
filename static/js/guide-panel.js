@@ -56,6 +56,12 @@ function initializeGuidePanel() {
     
     // Listen for changes in the main application state
     listenForApplicationChanges();
+    
+    // Update the button text to "Find Keywords in Resume"
+    const continueBtn = document.getElementById('guideContinueBtn');
+    if (continueBtn) {
+        continueBtn.textContent = 'Find Keywords in Resume';
+    }
 }
 
 // Handle Extract Keywords button click
@@ -69,8 +75,13 @@ function handleExtractKeywords() {
         return;
     }
     
-    // Trigger the extract keywords action in the main application
-    document.getElementById('extractKeywordsBtn').click();
+    // Directly extract keywords instead of clicking the button
+    if (window.KeywordManager && typeof window.KeywordManager.extractKeywords === 'function') {
+        window.KeywordManager.extractKeywords();
+    } else {
+        // Fallback to clicking the button if the direct method is not available
+        document.getElementById('extractKeywordsBtn').click();
+    }
     
     // The application state change listeners will handle activating the next step
 }
@@ -130,7 +141,7 @@ function findKeywordsInResume(callback) {
                 if (continueCitationsBtn) {
                     continueCitationsBtn.disabled = false;
                     continueCitationsBtn.classList.remove('opacity-75');
-                    continueCitationsBtn.innerHTML = `Continue to Citations`;
+                    continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
                 }
                 return;
             }
@@ -142,7 +153,7 @@ function findKeywordsInResume(callback) {
                 if (continueCitationsBtn) {
                     continueCitationsBtn.disabled = false;
                     continueCitationsBtn.classList.remove('opacity-75');
-                    continueCitationsBtn.innerHTML = `Continue to Citations`;
+                    continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
                 }
                 return;
             }
@@ -199,7 +210,7 @@ function findKeywordsInResume(callback) {
                     if (continueCitationsBtn) {
                         continueCitationsBtn.disabled = false;
                         continueCitationsBtn.classList.remove('opacity-75');
-                        continueCitationsBtn.innerHTML = `Continue to Citations`;
+                        continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
                     }
                 }
             })
@@ -211,7 +222,7 @@ function findKeywordsInResume(callback) {
                 if (continueCitationsBtn) {
                     continueCitationsBtn.disabled = false;
                     continueCitationsBtn.classList.remove('opacity-75');
-                    continueCitationsBtn.innerHTML = `Continue to Citations`;
+                    continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
                 }
             });
         } catch (error) {
@@ -221,7 +232,7 @@ function findKeywordsInResume(callback) {
             if (continueCitationsBtn) {
                 continueCitationsBtn.disabled = false;
                 continueCitationsBtn.classList.remove('opacity-75');
-                continueCitationsBtn.innerHTML = `Continue to Citations`;
+                continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
             }
             
             // Show error message
@@ -235,7 +246,7 @@ function findKeywordsInResume(callback) {
         if (continueCitationsBtn) {
             continueCitationsBtn.disabled = false;
             continueCitationsBtn.classList.remove('opacity-75');
-            continueCitationsBtn.innerHTML = `Continue to Citations`;
+            continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
         }
     }
 }
@@ -264,7 +275,7 @@ function generateCitations() {
                 if (continueCitationsBtn) {
                     continueCitationsBtn.disabled = false;
                     continueCitationsBtn.classList.remove('opacity-75');
-                    continueCitationsBtn.innerHTML = `Continue to Citations`;
+                    continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
                 }
                 
                 // Show success message
@@ -276,8 +287,14 @@ function generateCitations() {
                     citationsPanel.classList.remove('hidden');
                 }
                 
-                // Trigger the continue to profile action in the main application
-                document.getElementById('continueToProfileBtn').click();
+                // Show the career profile section directly instead of clicking the button
+                const careerProfileSection = document.getElementById('careerProfileSection');
+                const keywordsSection = document.getElementById('keywordsSection');
+                
+                if (careerProfileSection && keywordsSection) {
+                    keywordsSection.classList.add('hidden');
+                    careerProfileSection.classList.remove('hidden');
+                }
                 
                 // Skip step 3 and activate step 4 (Generate Content) directly
                 activateStep(4);
@@ -289,7 +306,7 @@ function generateCitations() {
             if (continueCitationsBtn) {
                 continueCitationsBtn.disabled = false;
                 continueCitationsBtn.classList.remove('opacity-75');
-                continueCitationsBtn.innerHTML = `Continue to Citations`;
+                continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
             }
             
             // Show error message
@@ -303,7 +320,7 @@ function generateCitations() {
         if (continueCitationsBtn) {
             continueCitationsBtn.disabled = false;
             continueCitationsBtn.classList.remove('opacity-75');
-            continueCitationsBtn.innerHTML = `Continue to Citations`;
+            continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
         }
     }
 }
@@ -375,8 +392,13 @@ function handleGenerateCitations() {
 
 // Handle Generate Profile button click
 function handleGenerateProfile() {
-    // Trigger the generate profile action in the main application
-    document.getElementById('generateProfileBtn').click();
+    // Directly call the ProfileManager's generate function if available
+    if (window.ProfileManager && typeof window.ProfileManager.generateProfile === 'function') {
+        window.ProfileManager.generateProfile();
+    } else {
+        // Fallback to clicking the button if the direct method is not available
+        document.getElementById('generateProfileBtn').click();
+    }
 }
 
 // Handle Generate Competencies button click
@@ -386,18 +408,43 @@ function handleGenerateCompetencies() {
         // Already on competencies section
     } else if (!document.getElementById('careerProfileSection').classList.contains('hidden')) {
         // On career profile section, navigate to competencies
-        document.getElementById('nextBtn').click();
+        const careerProfileSection = document.getElementById('careerProfileSection');
+        const coreCompetenciesSection = document.getElementById('coreCompetenciesSection');
+        
+        if (careerProfileSection && coreCompetenciesSection) {
+            careerProfileSection.classList.add('hidden');
+            coreCompetenciesSection.classList.remove('hidden');
+        } else {
+            // Fallback to clicking the button
+            document.getElementById('nextBtn').click();
+        }
     } else {
         // Navigate to career profile first, then to competencies
-        document.getElementById('continueToProfileBtn').click();
-        setTimeout(() => {
-            document.getElementById('nextBtn').click();
-        }, 300);
+        const keywordsSection = document.getElementById('keywordsSection');
+        const careerProfileSection = document.getElementById('careerProfileSection');
+        const coreCompetenciesSection = document.getElementById('coreCompetenciesSection');
+        
+        if (keywordsSection && careerProfileSection && coreCompetenciesSection) {
+            keywordsSection.classList.add('hidden');
+            careerProfileSection.classList.add('hidden');
+            coreCompetenciesSection.classList.remove('hidden');
+        } else {
+            // Fallback to clicking the buttons
+            document.getElementById('continueToProfileBtn').click();
+            setTimeout(() => {
+                document.getElementById('nextBtn').click();
+            }, 300);
+        }
     }
     
-    // Trigger the generate competencies action in the main application
+    // Directly call the CompetenciesManager's generate function if available
     setTimeout(() => {
-        document.getElementById('generateCompetenciesBtn').click();
+        if (window.CompetenciesManager && typeof window.CompetenciesManager.generateCompetencies === 'function') {
+            window.CompetenciesManager.generateCompetencies();
+        } else {
+            // Fallback to clicking the button if the direct method is not available
+            document.getElementById('generateCompetenciesBtn').click();
+        }
     }, 500);
 }
 
@@ -411,7 +458,16 @@ function handleSaveProfile() {
 function handleSaveCompetencies() {
     // Navigate to competencies section if not already there
     if (document.getElementById('coreCompetenciesSection').classList.contains('hidden')) {
-        document.getElementById('nextBtn').click();
+        const careerProfileSection = document.getElementById('careerProfileSection');
+        const coreCompetenciesSection = document.getElementById('coreCompetenciesSection');
+        
+        if (careerProfileSection && coreCompetenciesSection) {
+            careerProfileSection.classList.add('hidden');
+            coreCompetenciesSection.classList.remove('hidden');
+        } else {
+            // Fallback to clicking the button
+            document.getElementById('nextBtn').click();
+        }
     }
     
     // Trigger the save competencies action in the main application
