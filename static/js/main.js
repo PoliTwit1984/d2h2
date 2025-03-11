@@ -1065,6 +1065,85 @@ function createKeywordElement(keyword, priority, score, isMissing = false) {
     return element;
 }
 
+// Generate citations for all keywords
+function generateCitationsForAllKeywords() {
+    const masterResumeTextarea = document.getElementById('masterResume');
+    const masterResumeText = masterResumeTextarea.value.trim();
+    
+    if (!masterResumeText) {
+        showAlert('Please paste your master resume to generate citations.');
+        return;
+    }
+    
+    // Get all keywords from the data structure
+    const allKeywords = [];
+    
+    // Add high priority keywords
+    if (keywordsData.keywords && keywordsData.keywords.high_priority) {
+        keywordsData.keywords.high_priority.forEach(item => {
+            const keywordText = typeof item === 'string' ? item : (item.keyword || '');
+            if (keywordText && !allKeywords.includes(keywordText)) {
+                allKeywords.push(keywordText);
+            }
+        });
+    }
+    
+    // Add medium priority keywords
+    if (keywordsData.keywords && keywordsData.keywords.medium_priority) {
+        keywordsData.keywords.medium_priority.forEach(item => {
+            const keywordText = typeof item === 'string' ? item : (item.keyword || '');
+            if (keywordText && !allKeywords.includes(keywordText)) {
+                allKeywords.push(keywordText);
+            }
+        });
+    }
+    
+    // Add low priority keywords
+    if (keywordsData.keywords && keywordsData.keywords.low_priority) {
+        keywordsData.keywords.low_priority.forEach(item => {
+            const keywordText = typeof item === 'string' ? item : (item.keyword || '');
+            if (keywordText && !allKeywords.includes(keywordText)) {
+                allKeywords.push(keywordText);
+            }
+        });
+    }
+    
+    // Add any keywords from the flat list that might not be in the structured data
+    if (extractedKeywords && extractedKeywords.length > 0) {
+        extractedKeywords.forEach(keyword => {
+            if (!allKeywords.includes(keyword)) {
+                allKeywords.push(keyword);
+            }
+        });
+    }
+    
+    if (allKeywords.length === 0) {
+        showAlert('No keywords found. Please extract or add keywords first.');
+        return;
+    }
+    
+    // Show a loading message
+    showSuccessMessage(`Generating citations for ${allKeywords.length} keywords...`);
+    
+    // Process each keyword to find citations
+    let processedCount = 0;
+    
+    allKeywords.forEach((keyword, index) => {
+        // Use setTimeout to stagger requests and avoid overwhelming the server
+        setTimeout(() => {
+            findCitationForKeyword(keyword, masterResumeText);
+            processedCount++;
+            
+            // When all keywords are processed, show a success message
+            if (processedCount >= allKeywords.length) {
+                showSuccessMessage('Citations generated for all keywords!');
+            }
+        }, index * 300);
+    });
+    
+    return allKeywords.length; // Return the number of keywords processed
+}
+
 // Add a new keyword from the input field
 function addNewKeyword() {
     const newKeywordInput = document.getElementById('newKeywordInput');

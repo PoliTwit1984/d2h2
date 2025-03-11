@@ -584,64 +584,11 @@ const KeywordManager = {
             container.appendChild(missingKeywordsSection);
         }
         
-        // Add a button to continue to the next step
-        const continueBtn = document.createElement('button');
-        continueBtn.id = 'continueToFindCitationsBtn';
-        continueBtn.className = 'mt-4 px-3 py-2 rounded text-sm w-full';
-        continueBtn.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
-        continueBtn.style.color = '#2ECC71';
-        continueBtn.style.border = '1px solid rgba(46, 204, 113, 0.2)';
-        continueBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Continue with Selected Keywords
-        `;
-        
-        // Add event listener to the button
-        continueBtn.addEventListener('click', function() {
-            // Show the find keywords in resume button if master resume is provided
-            const masterResumeTextarea = document.getElementById('masterResume');
-            if (masterResumeTextarea && masterResumeTextarea.value.trim() && window.extractedKeywords && window.extractedKeywords.length > 0) {
-                // Create the find keywords button if it doesn't exist
-                let findKeywordsBtn = document.getElementById('findKeywordsBtn');
-                if (!findKeywordsBtn) {
-                    findKeywordsBtn = document.createElement('button');
-                    findKeywordsBtn.id = 'findKeywordsBtn';
-                    findKeywordsBtn.className = 'mt-4 px-3 py-2 rounded text-sm w-full';
-                    findKeywordsBtn.style.backgroundColor = 'rgba(46, 134, 171, 0.1)';
-                    findKeywordsBtn.style.color = '#2E86AB';
-                    findKeywordsBtn.style.border = '1px solid rgba(46, 134, 171, 0.2)';
-                    findKeywordsBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Find Keywords in Resume
-                    `;
-                    
-                    // Add event listener to the button
-                    findKeywordsBtn.addEventListener('click', function() {
-                        KeywordManager.findKeywordsInResume();
-                    });
-                    
-                    // Add the button to the container
-                    container.appendChild(findKeywordsBtn);
-                }
-                
-                // Hide the continue button
-                continueBtn.style.display = 'none';
-                
-                // Show a message about the next step
-                const nextStepMessage = document.createElement('p');
-                nextStepMessage.className = 'text-sm text-gray-600 mt-4 mb-2';
-                nextStepMessage.textContent = 'Now you can find which keywords are present in your resume.';
-                container.insertBefore(nextStepMessage, findKeywordsBtn);
-            } else {
-                UiManager.showAlert('Please paste a master resume to find keywords.');
-            }
-        });
-        
-        container.appendChild(continueBtn);
+        // Show the continue button in the main UI
+        const continueToProfileBtn = document.getElementById('continueToProfileBtn');
+        if (continueToProfileBtn) {
+            continueToProfileBtn.classList.remove('hidden');
+        }
         
         // Show the container
         container.classList.remove('hidden');

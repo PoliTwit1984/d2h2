@@ -117,9 +117,10 @@ const ApiService = {
      * @param {string} jobTitle - The job title (optional)
      * @param {string} companyName - The company name (optional)
      * @param {string} industry - The industry (optional)
+     * @param {Object} keywordsData - The structured keywords data with priorities (optional)
      * @returns {Promise} - A promise that resolves to the API response
      */
-    generateProfile: function(jobDescription, masterResume, keywords = [], citations = {}, jobTitle = '', companyName = '', industry = '') {
+    generateProfile: function(jobDescription, masterResume, keywords = [], citations = {}, jobTitle = '', companyName = '', industry = '', keywordsData = null) {
         return new Promise((resolve, reject) => {
             // Create form data
             const formData = new FormData();
@@ -130,6 +131,11 @@ const ApiService = {
             formData.append('job_title', jobTitle);
             formData.append('company_name', companyName);
             formData.append('industry', industry);
+            
+            // Add keywords data if provided
+            if (keywordsData) {
+                formData.append('keywords_data', JSON.stringify(keywordsData));
+            }
             
             // Make the API call
             fetch('/generate', {
@@ -155,9 +161,10 @@ const ApiService = {
      * @param {string} jobTitle - The job title (optional)
      * @param {string} companyName - The company name (optional)
      * @param {string} industry - The industry (optional)
+     * @param {Object} keywordsData - The structured keywords data with priorities (optional)
      * @returns {Promise} - A promise that resolves to the API response
      */
-    generateCompetencies: function(jobDescription, masterResume, keywords = [], citations = {}, jobTitle = '', companyName = '', industry = '') {
+    generateCompetencies: function(jobDescription, masterResume, keywords = [], citations = {}, jobTitle = '', companyName = '', industry = '', keywordsData = null) {
         return new Promise((resolve, reject) => {
             // Create form data
             const formData = new FormData();
@@ -168,6 +175,11 @@ const ApiService = {
             formData.append('job_title', jobTitle);
             formData.append('company_name', companyName);
             formData.append('industry', industry);
+            
+            // Add keywords data if provided
+            if (keywordsData) {
+                formData.append('keywords_data', JSON.stringify(keywordsData));
+            }
             
             // Make the API call
             fetch('/generate-competencies', {

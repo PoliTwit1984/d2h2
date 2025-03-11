@@ -45,10 +45,17 @@ const CompetenciesManager = {
         const coreCompetenciesTextarea = document.getElementById('coreCompetencies');
         const jobTitleInput = document.getElementById('jobTitle');
         const companyNameInput = document.getElementById('companyName');
+        const industryInput = document.getElementById('industry');
         
         // Validate input
         if (!jobDescriptionTextarea.value.trim() || !masterResumeTextarea.value.trim()) {
             UiManager.showAlert('Please paste both a job description and your master resume.');
+            return;
+        }
+        
+        // Check if we have extracted keywords
+        if (!window.extractedKeywords || window.extractedKeywords.length === 0) {
+            UiManager.showAlert('Please extract keywords first before generating core competencies.');
             return;
         }
         
@@ -57,6 +64,7 @@ const CompetenciesManager = {
         const masterResumeValue = masterResumeTextarea.value;
         const jobTitleValue = jobTitleInput ? jobTitleInput.value.trim() : '';
         const companyNameValue = companyNameInput ? companyNameInput.value.trim() : '';
+        const industryValue = industryInput ? industryInput.value.trim() : '';
         
         // Show loading state
         const generateCompetenciesBtn = document.getElementById('generateCompetenciesBtn');
@@ -67,6 +75,9 @@ const CompetenciesManager = {
             <span>Generating...</span>
         `;
         
+        // Get the structured keywords data if available
+        const keywordsData = window.keywordsData || {};
+        
         // Call the API service to generate core competencies
         ApiService.generateCompetencies(
             jobDescriptionValue, 
@@ -74,7 +85,9 @@ const CompetenciesManager = {
             window.extractedKeywords || [], 
             window.citationsData?.keywords || {},
             jobTitleValue,
-            companyNameValue
+            companyNameValue,
+            industryValue,
+            keywordsData
         )
         .then(data => {
             // Reset button state
