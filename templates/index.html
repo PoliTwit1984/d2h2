@@ -266,6 +266,20 @@
                         </svg>
                         TARGET JOB DESCRIPTION
                     </h2>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label for="jobTitle" class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                            <input type="text" id="jobTitle" name="job_title" class="input-area py-2" placeholder="e.g., Senior Software Engineer">
+                        </div>
+                        <div>
+                            <label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                            <input type="text" id="companyName" name="company_name" class="input-area py-2" placeholder="e.g., Acme Corporation">
+                        </div>
+                        <div>
+                            <label for="industry" class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                            <input type="text" id="industry" name="industry" class="input-area py-2" placeholder="e.g., Technology, Healthcare">
+                        </div>
+                    </div>
                     <textarea id="jobDescription" name="job_description" class="input-area h-48" placeholder="Paste the job description here..."></textarea>
                 </div>
                 
@@ -316,11 +330,19 @@
         </div>
     </div>
     
-    <!-- Load JavaScript files -->
+    <!-- Load JavaScript modules -->
+    <script src="/static/js/modules/api-service.js"></script>
+    <script src="/static/js/modules/ui-manager.js"></script>
+    <script src="/static/js/modules/keyword-manager.js"></script>
+    <script src="/static/js/modules/profile-manager.js"></script>
+    <script src="/static/js/modules/competencies-manager.js"></script>
+    <script src="/static/js/modules/citations-manager.js"></script>
+    
+    <!-- Load main JavaScript file -->
+    <script src="/static/js/main-new.js"></script>
+    
+    <!-- Load legacy JavaScript files -->
     <script src="/static/js/ui-utils.js"></script>
-    <script src="/static/js/keywords-panel.js"></script>
-    <script src="/static/js/citations-panel.js"></script>
-    <script src="/static/js/main.js"></script>
     <script src="/static/js/form-fix.js"></script>
     <script src="/static/js/form-handler.js"></script>
 </body>

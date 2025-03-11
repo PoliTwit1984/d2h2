@@ -9,7 +9,7 @@ from services.openai_service import get_json_response, get_text_response
 from services.keyword_service import extract_keywords, highlight_keywords
 from utils.text_processing import sanitize_text
 
-def generate_career_profile(job_description, master_resume, keywords=None, existing_citations=None):
+def generate_career_profile(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None):
     """
     Generate a tailored career profile based on job description and master resume.
     
@@ -18,6 +18,9 @@ def generate_career_profile(job_description, master_resume, keywords=None, exist
         master_resume (str): The master resume text
         keywords (list, optional): List of keywords to include in the profile
         existing_citations (dict, optional): Existing citations from keyword extraction
+        job_title (str, optional): The job title
+        company_name (str, optional): The company name
+        industry (str, optional): The industry
         
     Returns:
         tuple: (profile, marked_profile, keywords, citations) - The generated profile,
@@ -26,11 +29,16 @@ def generate_career_profile(job_description, master_resume, keywords=None, exist
     try:
         # Extract keywords if not provided
         if not keywords:
-            _, keywords, _ = extract_keywords(job_description)
+            _, keywords, _ = extract_keywords(job_description, master_resume, job_title, company_name)
+        
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else "the position"
+        company_name_value = company_name if company_name else "the company"
+        industry_value = industry if industry else ""
         
         # Prepare the prompt for OpenAI with improved instructions
         prompt = f"""You are a resume-writing assistant specialized in crafting highly targeted, concise career profiles. 
-Your task is to clearly demonstrate in one sentence why the candidate is the ideal match for a specific job opening without summarizing the entire career. 
+Your task is to clearly demonstrate in one sentence why the candidate is the ideal match for the specific "{job_title_value}" role without summarizing the entire career.
 This concise sentence should follow the structured format:
 
 Who you are.
@@ -38,6 +46,11 @@ Who you are.
 Your relevant experience (focus on competencies, not specific technical skills).
 
 Which industries you've got experience in.
+
+JOB CONTEXT:
+- Job Title: {job_title_value}
+- Company: {company_name_value}
+- Industry: {industry_value}
 
 IMPORTANT INSTRUCTIONS:
 1. Thoroughly scan the ENTIRE resume, including ALL sections:
@@ -50,7 +63,8 @@ IMPORTANT INSTRUCTIONS:
    - Skills sections
    - Any other non-standard sections
 
-2. Look for the STRONGEST and most relevant competencies from ANY part of the resume that match the job description.
+2. Look for the STRONGEST and most relevant competencies from ANY part of the resume that match the job description, 
+   with special attention to those that align with the "{job_title_value}" role.
 
 3. If multiple instances of a competency exist across different jobs/experiences, choose the strongest examples
    that best demonstrate the depth of experience, regardless of how recent they are.
@@ -69,6 +83,10 @@ IMPORTANT INSTRUCTIONS:
 
 10. Highlight broader capabilities that demonstrate value, not the specific technologies used to deliver that value.
 
+11. Tailor the seniority level in your profile to match the seniority of the "{job_title_value}" role.
+
+12. If the company name suggests a specific industry (e.g., healthcare, finance, tech), emphasize relevant experience in that industry.
+
 Example of a good career profile:
 Senior technology leader with demonstrated expertise in digital transformation, strategic planning, and building high-performing teams in the financial services and healthcare sectors.
 
@@ -83,7 +101,7 @@ Job Description:
 Master Resume:
 {master_resume}
 
-Generate a concise career profile:"""
+Generate a concise career profile for the "{job_title_value}" role:"""
 
         # Call OpenAI API
         messages = [
@@ -103,7 +121,7 @@ Generate a concise career profile:"""
             citations = existing_citations
         else:
             print("Finding new citations for career profile")
-            citations = find_profile_citations(profile, master_resume)
+            citations = find_profile_citations(profile, master_resume, job_title, company_name, industry)
         
         return profile, marked_profile, keywords[:20], citations
     
@@ -111,13 +129,16 @@ Generate a concise career profile:"""
         print(f"Error generating career profile: {str(e)}")
         raise
 
-def find_profile_citations(profile, master_resume):
+def find_profile_citations(profile, master_resume, job_title=None, company_name=None, industry=None):
     """
     Find citations in the master resume for keywords in the career profile.
     
     Args:
         profile (str): The career profile text
         master_resume (str): The master resume text
+        job_title (str, optional): The job title
+        company_name (str, optional): The company name
+        industry (str, optional): The industry
         
     Returns:
         dict: Dictionary mapping competencies to citations
@@ -128,10 +149,20 @@ def find_profile_citations(profile, master_resume):
         sanitized_profile = sanitize_text(profile)
         sanitized_resume = sanitize_text(master_resume)
         
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else "the position"
+        company_name_value = company_name if company_name else "the company"
+        industry_value = industry if industry else ""
+        
         # Prepare the prompt for OpenAI with improved instructions
         prompt = f"""
-        I have a career profile and a master resume. I need you to thoroughly scan the ENTIRE resume to identify where the competencies and keywords 
+        I have a career profile for a "{job_title_value}" role at {company_name_value} and a master resume. I need you to thoroughly scan the ENTIRE resume to identify where the competencies and keywords 
         mentioned in the career profile are supported by evidence in the master resume.
+        
+        JOB CONTEXT:
+        - Job Title: {job_title_value}
+        - Company: {company_name_value}
+        - Industry: {industry_value}
         
         IMPORTANT INSTRUCTIONS:
         1. Scan the ENTIRE resume, including ALL sections:
@@ -194,7 +225,7 @@ def find_profile_citations(profile, master_resume):
         print(f"Error finding profile citations: {str(e)}")
         return {}
 
-def generate_core_competencies(job_description, master_resume, keywords=None, existing_citations=None):
+def generate_core_competencies(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None):
     """
     Generate core competencies based on job description and master resume.
     
@@ -203,6 +234,9 @@ def generate_core_competencies(job_description, master_resume, keywords=None, ex
         master_resume (str): The master resume text
         keywords (list, optional): List of keywords to consider
         existing_citations (dict, optional): Existing citations from keyword extraction
+        job_title (str, optional): The job title
+        company_name (str, optional): The company name
+        industry (str, optional): The industry
         
     Returns:
         tuple: (competencies, keywords, citations) - The generated competencies,
@@ -211,12 +245,22 @@ def generate_core_competencies(job_description, master_resume, keywords=None, ex
     try:
         # Extract keywords if not provided
         if not keywords:
-            _, keywords, _ = extract_keywords(job_description)
+            _, keywords, _ = extract_keywords(job_description, master_resume, job_title, company_name)
+        
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else "the position"
+        company_name_value = company_name if company_name else "the company"
+        industry_value = industry if industry else ""
         
         # Prepare the prompt for OpenAI with improved instructions
         prompt = f"""You are a resume-writing assistant specialized in identifying core competencies that match a job description and are supported by a candidate's resume.
 
-Your task is to extract up to 15 core competencies from the job description that are also evident in the candidate's resume. Format these as a comma-separated list.
+Your task is to extract up to 15 core competencies from the job description that are also evident in the candidate's resume, with special focus on those most relevant for the "{job_title_value}" role at {company_name_value}. Format these as a comma-separated list.
+
+JOB CONTEXT:
+- Job Title: {job_title_value}
+- Company: {company_name_value}
+- Industry: {industry_value}
 
 IMPORTANT INSTRUCTIONS:
 1. Focus on broader competencies (e.g., "Strategic Planning", "Team Leadership", "Process Optimization") rather than specific technical skills or tools.
@@ -245,13 +289,19 @@ IMPORTANT INSTRUCTIONS:
 
 9. Each competency should be capitalized and separated by a comma and space.
 
+10. Prioritize competencies that are most relevant to the "{job_title_value}" role, considering the seniority level and responsibilities typically associated with this position.
+
+11. If the company name suggests a specific industry (e.g., healthcare, finance, tech), prioritize competencies that are particularly valuable in that industry.
+
+12. Consider the company size and type when selecting competencies (e.g., startup vs. enterprise, B2B vs. B2C).
+
 Job Description:
 {job_description}
 
 Master Resume:
 {master_resume}
 
-Generate a comma-separated list of up to 15 core competencies:"""
+Generate a comma-separated list of up to 15 core competencies specifically tailored for the "{job_title_value}" role at {company_name_value}:"""
 
         # Call OpenAI API
         messages = [
@@ -268,7 +318,7 @@ Generate a comma-separated list of up to 15 core competencies:"""
             citations = existing_citations
         else:
             print("Finding new citations for core competencies")
-            citations = find_competencies_citations(competencies, master_resume)
+            citations = find_competencies_citations(competencies, master_resume, job_title, company_name, industry)
         
         return competencies, keywords[:15], citations
     
@@ -276,13 +326,16 @@ Generate a comma-separated list of up to 15 core competencies:"""
         print(f"Error generating core competencies: {str(e)}")
         raise
 
-def find_competencies_citations(competencies, master_resume):
+def find_competencies_citations(competencies, master_resume, job_title=None, company_name=None, industry=None):
     """
     Find citations in the master resume for the competencies.
     
     Args:
         competencies (str): The competencies as a comma-separated list
         master_resume (str): The master resume text
+        job_title (str, optional): The job title
+        company_name (str, optional): The company name
+        industry (str, optional): The industry
         
     Returns:
         dict: Dictionary mapping competencies to citations
@@ -293,10 +346,20 @@ def find_competencies_citations(competencies, master_resume):
         sanitized_competencies = sanitize_text(competencies)
         sanitized_resume = sanitize_text(master_resume)
         
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else "the position"
+        company_name_value = company_name if company_name else "the company"
+        industry_value = industry if industry else ""
+        
         # Prepare the prompt for OpenAI with improved instructions
         prompt = f"""
-        I have a list of core competencies and a master resume. I need you to thoroughly scan the ENTIRE resume to identify where each competency 
+        I have a list of core competencies for a "{job_title_value}" role at {company_name_value} and a master resume. I need you to thoroughly scan the ENTIRE resume to identify where each competency 
         is supported by evidence in the master resume.
+        
+        JOB CONTEXT:
+        - Job Title: {job_title_value}
+        - Company: {company_name_value}
+        - Industry: {industry_value}
         
         IMPORTANT INSTRUCTIONS:
         1. Scan the ENTIRE resume, including ALL sections:

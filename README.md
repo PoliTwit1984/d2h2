@@ -52,9 +52,16 @@ python -c "from app import app; app.run(debug=True, port=5001)"
 
 1. Enter your target job description in the "Target Job Description" field
 2. Paste your master resume in the "Master Resume" field
-3. Click "Generate" to create your tailored career profile
-4. Review the highlighted keywords and supporting evidence
-5. Save your career profile for use in your job application
+3. (Optional) Provide additional context:
+   - Job Title: Specify the exact position you're applying for
+   - Company Name: Enter the company name for more targeted results
+   - Industry: Specify the industry for industry-specific tailoring
+4. Click "Extract Keywords" to identify important keywords from the job description
+5. Review and customize the extracted keywords
+6. Generate your tailored career profile
+7. Review the highlighted keywords and supporting evidence
+8. Generate core competencies that align with the job requirements
+9. Save your career profile, competencies, and supporting evidence for use in your job application
 
 ## License
 

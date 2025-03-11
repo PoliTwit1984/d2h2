@@ -21,7 +21,184 @@ def log_debug(message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     print(f"[DEBUG] [{timestamp}] {message}")
 
-def extract_keywords(job_description, master_resume=None):
+def extract_keywords_only(job_description, job_title=None, company_name=None, industry=None):
+    """
+    Extract explicit keywords from the job description only, without checking the resume.
+    Ranked by priority based on placement, frequency, and context.
+    
+    Args:
+        job_description (str): The job description text
+        job_title (str, optional): The job title (optional)
+        company_name (str, optional): The company name (optional)
+        industry (str, optional): The industry (optional)
+        
+    Returns:
+        tuple: (keywords_data, all_keywords)
+    """
+    try:
+        log_debug("Starting keyword extraction process (job description only)...")
+        start_time = time.time()
+        
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else ""
+        company_name_value = company_name if company_name else ""
+        industry_value = industry if industry else ""
+        
+        log_debug(f"Job Title: {job_title_value}")
+        log_debug(f"Company Name: {company_name_value}")
+        log_debug(f"Industry: {industry_value}")
+        
+        # Enhanced instructions for better keyword extraction from all types of job descriptions
+        prompt = f"""
+        You are an AI assistant specialized in extracting keywords and phrases from job descriptions for Applicant Tracking System (ATS) optimization. Your goal is to identify ALL skills, competencies, qualifications, and important concepts from the ENTIRE job description, including introductory paragraphs, responsibilities, requirements, and any other sections.
+
+        IMPORTANT INSTRUCTIONS:
+
+        1. SCAN THE ENTIRE JOB DESCRIPTION:
+           - Process ALL sections including introduction, about the company, responsibilities, requirements, qualifications, etc.
+           - Pay special attention to bullet points, which often contain key skills and requirements
+           - Don't miss important keywords in paragraph text or section headers
+
+        2. EXTRACT SKILLS AND QUALIFICATIONS:
+           - Technical skills (e.g., programming languages, tools, platforms)
+           - Soft skills (e.g., communication, leadership, problem-solving)
+           - Domain knowledge (e.g., healthcare, finance, marketing)
+           - Certifications and education requirements
+           - Experience requirements (e.g., years of experience, specific roles)
+
+        3. HANDLE MULTI-WORD PHRASES PROPERLY:
+           - Break down compound phrases connected by "and", "or", or commas into separate keywords
+           - Example: "Experience leading executive engagements and influencing decision-makers" should become TWO separate keywords:
+             * "Experience leading executive engagements"
+             * "Influencing decision-makers"
+           - Keep phrases concise (2-5 words) while maintaining their meaning
+           - Ensure each keyword represents a single, distinct skill or qualification
+
+        4. RANK BY PRIORITY:
+           - High priority: Required skills, must-have qualifications, or skills mentioned multiple times
+           - Medium priority: Preferred skills, desired qualifications, or skills mentioned in key responsibilities
+           - Low priority: Nice-to-have skills, background context, or skills mentioned only once in less critical sections
+
+        5. OUTPUT FORMAT:
+           {{
+             "high_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.95 }},
+               ...
+             ],
+             "medium_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.75 }},
+               ...
+             ],
+             "low_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.50 }},
+               ...
+             ]
+           }}
+
+        Each keyword should appear only once (no duplicates).
+        "score" is a numeric weight between 0.0 and 1.0, reflecting relative importance.
+        Ensure the JSON output is valid (no markdown formatting).
+
+        JOB CONTEXT:
+        Job Title: {job_title_value if 'job_title_value' in locals() else ''}
+        Company: {company_name_value if 'company_name_value' in locals() else ''}
+        Industry: {industry_value if 'industry_value' in locals() else ''}
+        
+        Job Description:
+        {job_description}
+        """
+
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that extracts exact keywords from job descriptions for ATS."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        try:
+            log_debug("Calling OpenAI API to extract keywords...")
+            api_start_time = time.time()
+            
+            # Get the JSON response using the existing function
+            keywords_data = get_json_response(messages, max_tokens=1000, temperature=0.3)
+            
+            api_duration = time.time() - api_start_time
+            log_debug(f"OpenAI API call completed in {api_duration:.2f} seconds")
+            
+            # Create a flat list of all keywords from each priority category
+            all_keywords = []
+            if isinstance(keywords_data, dict):
+                for priority_field in ["high_priority", "medium_priority", "low_priority"]:
+                    if priority_field in keywords_data:
+                        # keywords_data[priority_field] should be a list of objects with "keyword" and "score"
+                        for item in keywords_data[priority_field]:
+                            if isinstance(item, dict) and "keyword" in item:
+                                all_keywords.append(item["keyword"])
+            
+            # Check if we have a valid structure with keywords
+            if not all_keywords or "error" in keywords_data:
+                # Instead of falling back to regex extraction, try to extract keywords from the raw response
+                log_debug("No keywords found in structured response, attempting to extract from raw response")
+                
+                # Make another API call with a simpler prompt
+                simplified_prompt = f"""
+                Extract the most important skills, qualifications, and requirements from this job description.
+                Return them as a simple JSON with high_priority, medium_priority, and low_priority arrays.
+                Each array should contain objects with 'keyword' and 'score' properties.
+                
+                Job Description:
+                {job_description}
+                """
+                
+                simplified_messages = [
+                    {"role": "system", "content": "You are a helpful assistant that extracts keywords from job descriptions."},
+                    {"role": "user", "content": simplified_prompt}
+                ]
+                
+                # Try with a different temperature
+                retry_keywords_data = get_json_response(simplified_messages, max_tokens=1000, temperature=0.2)
+                
+                # Check if we got a valid response
+                retry_all_keywords = []
+                if isinstance(retry_keywords_data, dict):
+                    for priority_field in ["high_priority", "medium_priority", "low_priority"]:
+                        if priority_field in retry_keywords_data:
+                            for item in retry_keywords_data[priority_field]:
+                                if isinstance(item, dict) and "keyword" in item:
+                                    retry_all_keywords.append(item["keyword"])
+                
+                if retry_all_keywords:
+                    log_debug(f"Successfully extracted {len(retry_all_keywords)} keywords with simplified prompt")
+                    keywords_data = retry_keywords_data
+                    all_keywords = retry_all_keywords
+                else:
+                    # Only as a last resort, fall back to regex extraction
+                    log_debug("Still no keywords found, falling back to regex extraction as last resort")
+                    keywords_data, all_keywords = extract_keywords_regex(job_description)
+            
+            # Initialize keywords structure if needed
+            if "keywords" not in keywords_data:
+                keywords_data["keywords"] = {}
+                
+            for priority in ["high_priority", "medium_priority", "low_priority"]:
+                if priority in keywords_data:
+                    keywords_data["keywords"][priority] = keywords_data[priority]
+            
+            # Calculate total processing time
+            total_duration = time.time() - start_time
+            log_debug(f"Keyword extraction process completed in {total_duration:.2f} seconds")
+            
+            return keywords_data, all_keywords
+            
+        except Exception as e:
+            print(f"Error in OpenAI keyword extraction: {str(e)}")
+            # Fallback to regex-based extraction if OpenAI fails
+            return extract_keywords_regex(job_description)
+            
+    except Exception as e:
+        print(f"Error extracting keywords: {str(e)}")
+        # Fallback to regex-based extraction if any error occurs
+        return extract_keywords_regex(job_description)
+
+def extract_keywords(job_description, master_resume=None, job_title=None, company_name=None, industry=None):
     """
     Extract explicit keywords from the job description, ranked by priority
     based on placement, frequency, and context (e.g., 'required', 'preferred').
@@ -29,6 +206,9 @@ def extract_keywords(job_description, master_resume=None):
     Args:
         job_description (str): The job description text
         master_resume (str, optional): The master resume text (optional)
+        job_title (str, optional): The job title (optional)
+        company_name (str, optional): The company name (optional)
+        industry (str, optional): The industry (optional)
         
     Returns:
         tuple: (keywords_data, all_keywords, citations)
@@ -40,49 +220,70 @@ def extract_keywords(job_description, master_resume=None):
         log_debug("Starting keyword extraction process...")
         start_time = time.time()
         
-        # Updated instructions with more explicit guidance on exact wording and phrase handling
+        # Get job title, company name, and industry if provided
+        job_title_value = job_title if job_title else ""
+        company_name_value = company_name if company_name else ""
+        industry_value = industry if industry else ""
+        
+        log_debug(f"Job Title: {job_title_value}")
+        log_debug(f"Company Name: {company_name_value}")
+        log_debug(f"Industry: {industry_value}")
+        
+        # Enhanced instructions for better keyword extraction from all types of job descriptions
         prompt = f"""
-        You are an AI assistant specialized in extracting exact keywords and phrases from job descriptions for Applicant Tracking System (ATS) optimization. Your goal is to capture and rank explicit skills, competencies, or qualifications found within the job description. When the user provides a job description, you must:
+        You are an AI assistant specialized in extracting keywords and phrases from job descriptions for Applicant Tracking System (ATS) optimization. Your goal is to identify ALL skills, competencies, qualifications, and important concepts from the ENTIRE job description, including introductory paragraphs, responsibilities, requirements, and any other sections.
 
-        Extract only the explicit skills, competencies, or qualifications
+        IMPORTANT INSTRUCTIONS:
 
-        Use the exact wording as it appears in the job post.
-        Do not infer or add synonyms, related terms, or abbreviations if they're not explicitly stated. For example, if the text says "Microsoft Excel," do not shorten or alter it to "Excel" or "MS Excel."
-        Multi-word phrases should be kept as-is (e.g., "triaging support requests").
-        Rank the extracted keywords/phrases by priority
+        1. SCAN THE ENTIRE JOB DESCRIPTION:
+           - Process ALL sections including introduction, about the company, responsibilities, requirements, qualifications, etc.
+           - Pay special attention to bullet points, which often contain key skills and requirements
+           - Don't miss important keywords in paragraph text or section headers
 
-        Sections titled "Responsibilities" or "Requirements" generally indicate higher priority than "About Us" or other background info.
-        If a term or phrase is repeated, factor its frequency into its final score.
-        Explicit context clues:
-        "required," "must-have," or "critical" => High priority.
-        "preferred," "nice to have" => Medium priority.
-        Anything else that appears relevant but not indicated as critical => Low priority.
-        Output the results in this exact JSON format:
+        2. EXTRACT SKILLS AND QUALIFICATIONS:
+           - Technical skills (e.g., programming languages, tools, platforms)
+           - Soft skills (e.g., communication, leadership, problem-solving)
+           - Domain knowledge (e.g., healthcare, finance, marketing)
+           - Certifications and education requirements
+           - Experience requirements (e.g., years of experience, specific roles)
 
+        3. HANDLE MULTI-WORD PHRASES PROPERLY:
+           - Break down compound phrases connected by "and", "or", or commas into separate keywords
+           - Example: "Experience leading executive engagements and influencing decision-makers" should become TWO separate keywords:
+             * "Experience leading executive engagements"
+             * "Influencing decision-makers"
+           - Keep phrases concise (2-5 words) while maintaining their meaning
+           - Ensure each keyword represents a single, distinct skill or qualification
 
-        {{
-          "high_priority": [
-            {{ "keyword": "some exact term", "score": 0.95 }},
-            ...
-          ],
-          "medium_priority": [
-            {{ "keyword": "some exact term", "score": 0.75 }},
-            ...
-          ],
-          "low_priority": [
-            {{ "keyword": "some exact term", "score": 0.50 }},
-            ...
-          ]
-        }}
-        Each keyword/phrase should appear only once (no duplicates).
+        4. RANK BY PRIORITY:
+           - High priority: Required skills, must-have qualifications, or skills mentioned multiple times
+           - Medium priority: Preferred skills, desired qualifications, or skills mentioned in key responsibilities
+           - Low priority: Nice-to-have skills, background context, or skills mentioned only once in less critical sections
+
+        5. OUTPUT FORMAT:
+           {{
+             "high_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.95 }},
+               ...
+             ],
+             "medium_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.75 }},
+               ...
+             ],
+             "low_priority": [
+               {{ "keyword": "specific skill or qualification", "score": 0.50 }},
+               ...
+             ]
+           }}
+
+        Each keyword should appear only once (no duplicates).
         "score" is a numeric weight between 0.0 and 1.0, reflecting relative importance.
-        Make sure the JSON output is valid (no markdown formatting).
-        Do not include extra or missing keywords from external sources.
+        Ensure the JSON output is valid (no markdown formatting).
 
-        Only use what's explicitly stated in the provided job description.
-        Include multi-word phrases exactly as they appear.
-
-        Do not split "executive sponsors" into "executive" and "sponsors."
+        JOB CONTEXT:
+        Job Title: {job_title_value if 'job_title_value' in locals() else ''}
+        Company: {company_name_value if 'company_name_value' in locals() else ''}
+        Industry: {industry_value if 'industry_value' in locals() else ''}
         
         Job Description:
         {job_description}
@@ -116,10 +317,46 @@ def extract_keywords(job_description, master_resume=None):
                             if isinstance(item, dict) and "keyword" in item:
                                 all_keywords.append(item["keyword"])
             
-            # If no keywords were found, fall back to regex extraction
-            if not all_keywords:
-                log_debug("No keywords found, falling back to regex extraction")
-                keywords_data, all_keywords = extract_keywords_regex(job_description)
+            # Check if we have a valid structure with keywords
+            if not all_keywords or "error" in keywords_data:
+                # Instead of falling back to regex extraction, try to extract keywords from the raw response
+                log_debug("No keywords found in structured response, attempting to extract from raw response")
+                
+                # Make another API call with a simpler prompt
+                simplified_prompt = f"""
+                Extract the most important skills, qualifications, and requirements from this job description.
+                Return them as a simple JSON with high_priority, medium_priority, and low_priority arrays.
+                Each array should contain objects with 'keyword' and 'score' properties.
+                
+                Job Description:
+                {job_description}
+                """
+                
+                simplified_messages = [
+                    {"role": "system", "content": "You are a helpful assistant that extracts keywords from job descriptions."},
+                    {"role": "user", "content": simplified_prompt}
+                ]
+                
+                # Try with a different temperature
+                retry_keywords_data = get_json_response(simplified_messages, max_tokens=1000, temperature=0.2)
+                
+                # Check if we got a valid response
+                retry_all_keywords = []
+                if isinstance(retry_keywords_data, dict):
+                    for priority_field in ["high_priority", "medium_priority", "low_priority"]:
+                        if priority_field in retry_keywords_data:
+                            for item in retry_keywords_data[priority_field]:
+                                if isinstance(item, dict) and "keyword" in item:
+                                    retry_all_keywords.append(item["keyword"])
+                
+                if retry_all_keywords:
+                    log_debug(f"Successfully extracted {len(retry_all_keywords)} keywords with simplified prompt")
+                    keywords_data = retry_keywords_data
+                    all_keywords = retry_all_keywords
+                else:
+                    # Only as a last resort, fall back to regex extraction
+                    log_debug("Still no keywords found, falling back to regex extraction as last resort")
+                    keywords_data, all_keywords = extract_keywords_regex(job_description)
             
             # If we have a master resume, find citations for the keywords
             if resume_text and all_keywords:
@@ -258,6 +495,150 @@ def extract_keywords_regex(text):
     }
     
     return keywords_data, all_keywords
+
+def find_keywords_in_resume(keywords, resume_text, job_title=None, company_name=None, industry=None):
+    """
+    Find keywords in the resume and highlight them.
+    
+    Args:
+        keywords (list): List of keywords to find in the resume
+        resume_text (str): The resume text to search in
+        job_title (str, optional): The job title (optional)
+        company_name (str, optional): The company name (optional)
+        industry (str, optional): The industry (optional)
+        
+    Returns:
+        tuple: (found_keywords, highlighted_resume) - Dictionary of found keywords and highlighted resume text
+    """
+    try:
+        log_debug(f"Finding keywords in resume...")
+        start_time = time.time()
+        
+        # Clean and sanitize inputs to prevent JSON parsing issues
+        sanitized_keywords = []
+        
+        for keyword in keywords:
+            # Replace any characters that might cause issues in JSON
+            sanitized_keyword = sanitize_text(keyword)
+            sanitized_keywords.append(sanitized_keyword)
+        
+        # Sanitize resume text
+        sanitized_resume = sanitize_text(resume_text)
+        
+        # Prepare the prompt for OpenAI with improved instructions for better matching
+        prompt = f"""
+        I have a list of keywords and a resume. I need you to find which keywords appear in the resume.
+        
+        IMPORTANT INSTRUCTIONS:
+        1. Thoroughly scan the ENTIRE resume, including ALL sections.
+        2. For each keyword, determine if it appears in the resume (exact match or semantic equivalent).
+        3. Use your semantic understanding to identify matches based on meaning, not just exact words:
+           - Look for semantic equivalents (e.g., "Customer" and "Client" are semantically equivalent)
+           - Identify conceptual matches (e.g., "Data Analytics" might be evidenced by "metrics tracking")
+        4. Be strict about requiring genuine evidence. DO NOT force matches that aren't genuinely there.
+        
+        Your response MUST be a valid JSON object where:
+        - Each key is one of the keywords
+        - Each value is a boolean (true if found in resume, false if not found)
+        
+        Keywords:
+        {', '.join(sanitized_keywords)}
+        
+        Resume:
+        {sanitized_resume}
+        """
+        
+        # First attempt with JSON response format
+        try:
+            log_debug("Calling OpenAI API to find keywords in resume (JSON format)...")
+            api_start_time = time.time()
+            
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant that finds keywords in resumes and returns valid JSON. You are strict about only including keywords with genuine matches."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            # Get the JSON response
+            found_keywords = get_json_response(messages, max_tokens=800, temperature=0.3)
+            
+            api_duration = time.time() - api_start_time
+            log_debug(f"OpenAI API call for finding keywords completed in {api_duration:.2f} seconds")
+            
+            # Count how many keywords were found
+            found_count = sum(1 for value in found_keywords.values() if value)
+            log_debug(f"Found {found_count} keywords out of {len(keywords)} in resume")
+            
+            # Now highlight the keywords in the resume
+            highlighted_resume = highlight_keywords_in_resume(resume_text, found_keywords)
+            
+            return found_keywords, highlighted_resume
+            
+        except Exception as api_err:
+            print(f"API error in finding keywords: {str(api_err)}")
+            # Fall back to a simpler method
+            return fallback_find_keywords_in_resume(keywords, resume_text)
+            
+    except Exception as e:
+        print(f"Error finding keywords in resume: {str(e)}")
+        # Return empty dict if there's an error
+        return {}, resume_text
+
+def fallback_find_keywords_in_resume(keywords, resume_text):
+    """
+    Fallback method to find keywords in resume using regex.
+    
+    Args:
+        keywords (list): List of keywords to find in the resume
+        resume_text (str): The resume text to search in
+        
+    Returns:
+        tuple: (found_keywords, highlighted_resume) - Dictionary of found keywords and highlighted resume text
+    """
+    found_keywords = {}
+    
+    # Convert resume text to lowercase for case-insensitive matching
+    resume_lower = resume_text.lower()
+    
+    for keyword in keywords:
+        # Check if the keyword exists in the resume (case-insensitive)
+        found_keywords[keyword] = keyword.lower() in resume_lower
+    
+    # Highlight the keywords in the resume
+    highlighted_resume = highlight_keywords_in_resume(resume_text, found_keywords)
+    
+    return found_keywords, highlighted_resume
+
+def highlight_keywords_in_resume(resume_text, found_keywords):
+    """
+    Highlight keywords in the resume text.
+    
+    Args:
+        resume_text (str): The resume text to highlight
+        found_keywords (dict): Dictionary mapping keywords to boolean (found or not)
+        
+    Returns:
+        str: The resume text with keywords highlighted using HTML mark tags
+    """
+    # Create a copy of the resume text to work with
+    highlighted_text = resume_text
+    
+    # Replace newlines with <br> tags for proper HTML display
+    highlighted_text = highlighted_text.replace('\n', '<br>')
+    
+    # Highlight each found keyword
+    for keyword, found in found_keywords.items():
+        if found:
+            # Escape the keyword for regex
+            escaped_keyword = re.escape(keyword)
+            
+            # Use word boundaries to match whole words only, with case insensitivity
+            pattern = re.compile(r'\b' + escaped_keyword + r'\b', re.IGNORECASE)
+            
+            # Replace with marked version
+            replacement = f'<mark class="keyword-highlight">{keyword}</mark>'
+            highlighted_text = pattern.sub(replacement, highlighted_text)
+    
+    return highlighted_text
 
 def find_keyword_citations(keywords, resume_text):
     """

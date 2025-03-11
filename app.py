@@ -31,7 +31,9 @@ def extract_keywords_endpoint():
     """Extract keywords from job description with enhanced prioritization."""
     # Get form data
     job_description = request.form.get('job_description', '')
-    master_resume = request.form.get('master_resume', '')
+    job_title = request.form.get('job_title', '')
+    company_name = request.form.get('company_name', '')
+    industry = request.form.get('industry', '')
     
     # Check if required fields are provided
     if not job_description:
@@ -41,11 +43,16 @@ def extract_keywords_endpoint():
         }), 400
     
     try:
-        # Extract keywords using the keyword service
-        keywords_data, all_keywords, citations = extract_keywords(job_description, master_resume)
+        # Extract keywords using the keyword service (job description only)
+        from services.keyword_service import extract_keywords_only, highlight_job_description
+        keywords_data, all_keywords = extract_keywords_only(
+            job_description, 
+            job_title, 
+            company_name,
+            industry
+        )
         
         # Highlight keywords in the job description
-        from services.keyword_service import highlight_job_description
         highlighted_job_description = highlight_job_description(job_description, keywords_data)
         
         return jsonify({
@@ -53,7 +60,6 @@ def extract_keywords_endpoint():
             'message': 'Keywords extracted successfully!',
             'keywords': all_keywords,  # For backward compatibility
             'keywords_data': keywords_data,  # Enhanced data structure
-            'citations': citations,  # Citations for keywords
             'highlighted_job_description': highlighted_job_description  # Highlighted job description
         })
     
@@ -72,6 +78,9 @@ def generate():
     master_resume = request.form.get('master_resume', '')
     keywords_json = request.form.get('keywords', '')
     citations_json = request.form.get('citations_json', '')
+    job_title = request.form.get('job_title', '')
+    company_name = request.form.get('company_name', '')
+    industry = request.form.get('industry', '')
     
     # Parse keywords if provided
     provided_keywords = None
@@ -101,7 +110,13 @@ def generate():
     try:
         # Generate career profile using the resume service
         profile, marked_profile, keywords, citations = generate_career_profile(
-            job_description, master_resume, provided_keywords, existing_citations
+            job_description, 
+            master_resume, 
+            provided_keywords, 
+            existing_citations,
+            job_title,
+            company_name,
+            industry
         )
         
         return jsonify({
@@ -128,6 +143,9 @@ def generate_competencies():
     master_resume = request.form.get('master_resume', '')
     keywords_json = request.form.get('keywords', '')
     citations_json = request.form.get('citations_json', '')
+    job_title = request.form.get('job_title', '')
+    company_name = request.form.get('company_name', '')
+    industry = request.form.get('industry', '')
     
     # Parse keywords if provided
     provided_keywords = None
@@ -157,7 +175,13 @@ def generate_competencies():
     try:
         # Generate core competencies using the resume service
         competencies, keywords, citations = generate_core_competencies(
-            job_description, master_resume, provided_keywords, existing_citations
+            job_description, 
+            master_resume, 
+            provided_keywords, 
+            existing_citations,
+            job_title,
+            company_name,
+            industry
         )
         
         return jsonify({
@@ -287,6 +311,123 @@ def save_resume():
         return jsonify({
             'success': False,
             'message': f'Error saving resume: {str(e)}'
+        }), 500
+
+@app.route('/find-keywords-in-resume', methods=['POST'])
+def find_keywords_in_resume():
+    """Find keywords in the master resume and highlight them."""
+    # Get form data
+    master_resume = request.form.get('master_resume', '')
+    keywords_json = request.form.get('keywords', '')
+    job_title = request.form.get('job_title', '')
+    company_name = request.form.get('company_name', '')
+    industry = request.form.get('industry', '')
+    
+    # Parse keywords if provided
+    keywords = []
+    if keywords_json:
+        try:
+            import json
+            keywords_data = json.loads(keywords_json)
+            
+            # Extract keywords from the keywords_data structure
+            if isinstance(keywords_data, dict):
+                # If it's the enhanced structure with priority categories
+                for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                    if priority in keywords_data:
+                        for item in keywords_data[priority]:
+                            if isinstance(item, dict) and 'keyword' in item:
+                                keywords.append(item['keyword'])
+                            elif isinstance(item, str):
+                                keywords.append(item)
+            elif isinstance(keywords_data, list):
+                # If it's a simple list of keywords
+                keywords = keywords_data
+        except Exception as e:
+            print(f"Error parsing keywords JSON: {str(e)}")
+    
+    # Check if required fields are provided
+    if not master_resume or not keywords:
+        return jsonify({
+            'success': False,
+            'message': 'Master resume and keywords are required.'
+        }), 400
+    
+    try:
+        # Find keywords in the resume
+        from services.keyword_service import find_keywords_in_resume as find_kw
+        found_keywords, highlighted_resume = find_kw(keywords, master_resume, job_title, company_name, industry)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Keywords found successfully!',
+            'found_keywords': found_keywords,
+            'highlighted_resume': highlighted_resume
+        })
+    
+    except Exception as e:
+        # Handle any errors
+        return jsonify({
+            'success': False,
+            'message': f'Error finding keywords in resume: {str(e)}'
+        }), 500
+
+@app.route('/find-citations', methods=['POST'])
+def find_citations():
+    """Find citations for keywords in the master resume."""
+    # Get form data
+    master_resume = request.form.get('master_resume', '')
+    keywords_json = request.form.get('keywords', '')
+    job_title = request.form.get('job_title', '')
+    company_name = request.form.get('company_name', '')
+    industry = request.form.get('industry', '')
+    
+    # Parse keywords if provided
+    keywords = []
+    if keywords_json:
+        try:
+            import json
+            keywords_data = json.loads(keywords_json)
+            
+            # Extract keywords from the keywords_data structure
+            if isinstance(keywords_data, dict):
+                # If it's the enhanced structure with priority categories
+                for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                    if priority in keywords_data:
+                        for item in keywords_data[priority]:
+                            if isinstance(item, dict) and 'keyword' in item:
+                                keywords.append(item['keyword'])
+                            elif isinstance(item, str):
+                                keywords.append(item)
+            elif isinstance(keywords_data, list):
+                # If it's a simple list of keywords
+                keywords = keywords_data
+        except Exception as e:
+            print(f"Error parsing keywords JSON: {str(e)}")
+    
+    # Check if required fields are provided
+    if not master_resume or not keywords:
+        return jsonify({
+            'success': False,
+            'message': 'Master resume and keywords are required.'
+        }), 400
+    
+    try:
+        # Find citations for the keywords
+        from services.keyword_service import find_keyword_citations
+        citations = find_keyword_citations(keywords, master_resume, job_title, company_name, industry)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Citations found successfully!',
+            'citations': citations
+        })
+    
+    except Exception as e:
+        # Handle any errors
+        return jsonify({
+            'success': False,
+            'message': f'Error finding citations: {str(e)}'
         }), 500
 
 @app.route('/save-citations', methods=['POST'])

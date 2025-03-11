@@ -1,5 +1,23 @@
 // citations-panel.js - Citations panel functionality for dumped2hire
 
+// Initialize the citations data object
+if (typeof window.citationsData === 'undefined') {
+    window.citationsData = {};
+}
+
+// Clear the citations panel
+function clearCitationsPanel() {
+    const citationsContent = document.getElementById('citationsContent');
+    if (citationsContent) {
+        citationsContent.innerHTML = '<p class="text-gray-400 italic text-sm">Citations will appear here when you click "Find Citations in Resume".</p>';
+    }
+}
+
+// Initialize the citations panel when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    clearCitationsPanel();
+});
+
 // Add citations to the citations panel
 function addCitationsToPanel(section, citations) {
     // Store citations in global variable
