@@ -846,21 +846,116 @@ const KeywordManager = {
         const masterResumeTextarea = document.getElementById('masterResume');
         if (!masterResumeTextarea) return;
         
-        // Create a container for the highlighted resume
-        let highlightedResumeContainer = document.getElementById('highlightedResumeContainer');
+        // Find the highlighted job description section to position our new section after it
+        const highlightedJobDescriptionSection = document.getElementById('highlightedJobDescriptionSection');
         
-        // If the container doesn't exist, create it
-        if (!highlightedResumeContainer) {
-            highlightedResumeContainer = document.createElement('div');
-            highlightedResumeContainer.id = 'highlightedResumeContainer';
-            highlightedResumeContainer.className = 'border border-gray-300 rounded-md p-3 bg-white text-sm h-64 overflow-auto';
+        // Create a section for the highlighted resume (similar to job description section)
+        let highlightedResumeSection = document.getElementById('highlightedResumeSection');
+        
+        // If the section doesn't exist, create it
+        if (!highlightedResumeSection) {
+            highlightedResumeSection = document.createElement('div');
+            highlightedResumeSection.id = 'highlightedResumeSection';
+            highlightedResumeSection.className = 'mt-4 p-4 bg-white rounded-md shadow-sm';
+            highlightedResumeSection.style.border = '1px solid rgba(46, 134, 171, 0.3)';
             
-            // Insert the container after the textarea
-            masterResumeTextarea.parentNode.insertBefore(highlightedResumeContainer, masterResumeTextarea.nextSibling);
+            // Create the header with title and toggle button
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'flex justify-between items-center mb-2';
             
-            // Hide the textarea
-            masterResumeTextarea.style.display = 'none';
+            // Create the title
+            const title = document.createElement('h3');
+            title.className = 'text-sm font-semibold text-gray-700 flex items-center';
+            title.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                </svg>
+                Highlighted Keywords in Resume
+            `;
+            
+            // Create the toggle button
+            const toggleButton = document.createElement('button');
+            toggleButton.id = 'toggleResumeViewBtn';
+            toggleButton.className = 'text-xs flex items-center';
+            toggleButton.style.color = '#2E86AB';
+            toggleButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+                Switch to Edit View
+            `;
+            
+            // Add event listener to the toggle button
+            toggleButton.addEventListener('click', function() {
+                if (masterResumeTextarea.style.display === 'none') {
+                    // Switch to edit view
+                    masterResumeTextarea.style.display = 'block';
+                    highlightedResumeSection.style.display = 'none';
+                    toggleButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                        </svg>
+                        Switch to Highlighted View
+                    `;
+                } else {
+                    // Switch to highlighted view
+                    masterResumeTextarea.style.display = 'none';
+                    highlightedResumeSection.style.display = 'block';
+                    toggleButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                        </svg>
+                        Switch to Edit View
+                    `;
+                }
+            });
+            
+            // Add title and toggle button to the header
+            headerDiv.appendChild(title);
+            headerDiv.appendChild(toggleButton);
+            
+            // Create the content container
+            const contentContainer = document.createElement('div');
+            contentContainer.id = 'highlightedResumeContent';
+            contentContainer.className = 'text-sm p-3 bg-gray-50 rounded max-h-96 overflow-auto';
+            
+            // Add header and content container to the section
+            highlightedResumeSection.appendChild(headerDiv);
+            highlightedResumeSection.appendChild(contentContainer);
+            
+            // Determine where to insert the section
+            if (highlightedJobDescriptionSection) {
+                // Insert after the highlighted job description section
+                highlightedJobDescriptionSection.parentNode.insertBefore(
+                    highlightedResumeSection, 
+                    highlightedJobDescriptionSection.nextSibling
+                );
+            } else {
+                // If job description section doesn't exist, insert after the keywords container
+                const keywordsContainer = document.getElementById('extractedKeywordsContainer');
+                if (keywordsContainer) {
+                    keywordsContainer.parentNode.insertBefore(
+                        highlightedResumeSection, 
+                        keywordsContainer.nextSibling
+                    );
+                } else {
+                    // Fallback: insert after the master resume textarea
+                    masterResumeTextarea.parentNode.insertBefore(
+                        highlightedResumeSection, 
+                        masterResumeTextarea.nextSibling
+                    );
+                }
+            }
+            
+            // Don't hide the textarea - we'll keep it visible and let the toggle button handle visibility
+            // masterResumeTextarea.style.display = 'none';
         }
+        
+        // Get the content container
+        const contentContainer = document.getElementById('highlightedResumeContent');
         
         // Get the keywords data
         const keywordsData = window.keywordsData;
@@ -935,37 +1030,31 @@ const KeywordManager = {
         }
         
         // Update the container with the highlighted text
-        highlightedResumeContainer.innerHTML = highlightedText;
+        contentContainer.innerHTML = highlightedText;
         
-        // Add a button to toggle between the highlighted view and the textarea
-        let toggleButton = document.getElementById('toggleResumeViewBtn');
-        
-        if (!toggleButton) {
-            toggleButton = document.createElement('button');
-            toggleButton.id = 'toggleResumeViewBtn';
-            toggleButton.className = 'mt-2 px-3 py-1 rounded text-xs';
-            toggleButton.style.backgroundColor = 'rgba(46, 134, 171, 0.1)';
-            toggleButton.style.color = '#2E86AB';
-            toggleButton.style.border = '1px solid rgba(46, 134, 171, 0.2)';
-            toggleButton.textContent = 'Switch to Edit View';
+        // Add a priority legend
+        let legendContainer = document.getElementById('resumePriorityLegend');
+        if (!legendContainer) {
+            legendContainer = document.createElement('div');
+            legendContainer.id = 'resumePriorityLegend';
+            legendContainer.className = 'priority-legend mt-2 text-xs text-gray-600';
+            legendContainer.innerHTML = `
+                <div class="priority-legend-item">
+                    <span class="priority-indicator high-priority-indicator"></span>
+                    High Priority
+                </div>
+                <div class="priority-legend-item">
+                    <span class="priority-indicator medium-priority-indicator"></span>
+                    Medium Priority
+                </div>
+                <div class="priority-legend-item">
+                    <span class="priority-indicator low-priority-indicator"></span>
+                    Low Priority
+                </div>
+            `;
             
-            // Add event listener to the button
-            toggleButton.addEventListener('click', function() {
-                if (masterResumeTextarea.style.display === 'none') {
-                    // Switch to edit view
-                    masterResumeTextarea.style.display = 'block';
-                    highlightedResumeContainer.style.display = 'none';
-                    toggleButton.textContent = 'Switch to Highlighted View';
-                } else {
-                    // Switch to highlighted view
-                    masterResumeTextarea.style.display = 'none';
-                    highlightedResumeContainer.style.display = 'block';
-                    toggleButton.textContent = 'Switch to Edit View';
-                }
-            });
-            
-            // Insert the button after the highlighted container
-            highlightedResumeContainer.parentNode.insertBefore(toggleButton, highlightedResumeContainer.nextSibling);
+            // Add the legend after the content container
+            contentContainer.parentNode.insertBefore(legendContainer, contentContainer.nextSibling);
         }
     },
     
@@ -1027,67 +1116,22 @@ const KeywordManager = {
                 // Update the keywords display with found/not found indicators
                 this.updateKeywordsWithFoundStatus(data.found_keywords);
                 
-                // Display the highlighted resume
-                if (data.highlighted_resume) {
-                    // Get the master resume textarea
-                    const masterResumeTextarea = document.getElementById('masterResume');
-                    if (!masterResumeTextarea) return;
-                    
-                    // Create a container for the highlighted resume
-                    let highlightedResumeContainer = document.getElementById('highlightedResumeContainer');
-                    
-                    // If the container doesn't exist, create it
-                    if (!highlightedResumeContainer) {
-                        highlightedResumeContainer = document.createElement('div');
-                        highlightedResumeContainer.id = 'highlightedResumeContainer';
-                        highlightedResumeContainer.className = 'border border-gray-300 rounded-md p-3 bg-white text-sm h-64 overflow-auto';
-                        
-                        // Insert the container after the textarea
-                        masterResumeTextarea.parentNode.insertBefore(highlightedResumeContainer, masterResumeTextarea.nextSibling);
-                        
-                        // Hide the textarea
-                        masterResumeTextarea.style.display = 'none';
+                // Create a dictionary of keywords to their citations (empty for now)
+                // This will be used by the highlightKeywordsInResume function
+                const keywordCitations = {};
+                Object.keys(data.found_keywords).forEach(keyword => {
+                    if (data.found_keywords[keyword]) {
+                        keywordCitations[keyword] = "Found in resume";
                     }
-                    
-                    // Update the container with the highlighted text
-                    highlightedResumeContainer.innerHTML = data.highlighted_resume;
-                    
-                    // Add a button to toggle between the highlighted view and the textarea
-                    let toggleButton = document.getElementById('toggleResumeViewBtn');
-                    
-                    if (!toggleButton) {
-                        toggleButton = document.createElement('button');
-                        toggleButton.id = 'toggleResumeViewBtn';
-                        toggleButton.className = 'mt-2 px-3 py-1 rounded text-xs';
-                        toggleButton.style.backgroundColor = 'rgba(46, 134, 171, 0.1)';
-                        toggleButton.style.color = '#2E86AB';
-                        toggleButton.style.border = '1px solid rgba(46, 134, 171, 0.2)';
-                        toggleButton.textContent = 'Switch to Edit View';
-                        
-                        // Add event listener to the button
-                        toggleButton.addEventListener('click', function() {
-                            if (masterResumeTextarea.style.display === 'none') {
-                                // Switch to edit view
-                                masterResumeTextarea.style.display = 'block';
-                                highlightedResumeContainer.style.display = 'none';
-                                toggleButton.textContent = 'Switch to Highlighted View';
-                            } else {
-                                // Switch to highlighted view
-                                masterResumeTextarea.style.display = 'none';
-                                highlightedResumeContainer.style.display = 'block';
-                                toggleButton.textContent = 'Switch to Edit View';
-                            }
-                        });
-                        
-                        // Insert the button after the highlighted container
-                        highlightedResumeContainer.parentNode.insertBefore(toggleButton, highlightedResumeContainer.nextSibling);
-                    }
-                }
+                });
+                
+                // Use our new highlightKeywordsInResume function to create a properly styled section
+                this.highlightKeywordsInResume(masterResumeValue, keywordCitations);
                 
                 // Show success message
                 UiManager.showSuccessMessage('Keywords found in resume!');
                 
-                // Count how many keywords were found
+                // Count how many keywords were actually found
                 const foundCount = Object.values(data.found_keywords).filter(Boolean).length;
                 const totalCount = Object.keys(data.found_keywords).length;
                 
@@ -1099,6 +1143,30 @@ const KeywordManager = {
                 // Insert the summary message before the button
                 const container = document.getElementById('extractedKeywordsContainer');
                 container.insertBefore(summaryMessage, findKeywordsBtn);
+                
+                // Add a button to find citations if it doesn't exist
+                if (!document.getElementById('findCitationsBtn')) {
+                    const findCitationsBtn = document.createElement('button');
+                    findCitationsBtn.id = 'findCitationsBtn';
+                    findCitationsBtn.className = 'mt-4 px-3 py-2 rounded text-sm w-full';
+                    findCitationsBtn.style.backgroundColor = 'rgba(46, 134, 171, 0.1)';
+                    findCitationsBtn.style.color = '#2E86AB';
+                    findCitationsBtn.style.border = '1px solid rgba(46, 134, 171, 0.2)';
+                    findCitationsBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2E86AB">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Find Citations in Resume
+                    `;
+                    
+                    // Add event listener to the button
+                    findCitationsBtn.addEventListener('click', function() {
+                        KeywordManager.findCitations();
+                    });
+                    
+                    // Add the button after the find keywords button
+                    container.insertBefore(findCitationsBtn, findKeywordsBtn.nextSibling);
+                }
             } else {
                 // Show error message
                 UiManager.showAlert(data.message || 'Error finding keywords in resume');

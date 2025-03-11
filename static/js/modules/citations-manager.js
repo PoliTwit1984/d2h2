@@ -24,6 +24,15 @@ const CitationsManager = {
                 CitationsManager.saveCitationsForInterviewPrep();
             });
         }
+        
+        // Initialize Create Profile button
+        const createProfileBtn = document.getElementById('createProfileBtn');
+        if (createProfileBtn) {
+            createProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateToCareerProfile();
+            });
+        }
     },
     
     /**
@@ -76,22 +85,141 @@ const CitationsManager = {
             }
         }
         
-        // Add citations to the section
-        for (const [keyword, citation] of Object.entries(citations)) {
-            const citationDiv = document.createElement('div');
-            citationDiv.className = 'mb-3';
+        // Store citations in global variable for later use
+        if (typeof window.citationsData === 'undefined') {
+            window.citationsData = {};
+        }
+        window.citationsData[section] = citations;
+        
+        // Check if citations is in the new structured format with priority buckets
+        const isStructuredFormat = citations && 
+            (citations.high_priority || citations.medium_priority || 
+             citations.low_priority || citations.fallback_extraction);
+        
+        if (isStructuredFormat) {
+            console.log("Processing structured citations format");
             
-            const keywordHeader = document.createElement('h4');
-            keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-600';
-            keywordHeader.textContent = keyword;
-            citationDiv.appendChild(keywordHeader);
+            // Process each priority bucket
+            const priorities = [
+                { key: 'high_priority', label: 'High Priority', color: 'text-red-700' },
+                { key: 'medium_priority', label: 'Medium Priority', color: 'text-orange-700' },
+                { key: 'low_priority', label: 'Low Priority', color: 'text-yellow-700' },
+                { key: 'fallback_extraction', label: 'Additional Citations', color: 'text-blue-700' }
+            ];
             
-            const citationText = document.createElement('p');
-            citationText.className = 'text-xs text-gray-700 mb-2 pl-3 border-l-2 border-gray-300';
-            citationText.textContent = citation;
-            citationDiv.appendChild(citationText);
+            let totalCitations = 0;
             
-            sectionContainer.appendChild(citationDiv);
+            // Add each priority section
+            for (const priority of priorities) {
+                const priorityCitations = citations[priority.key];
+                
+                // Skip empty priority buckets
+                if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                    continue;
+                }
+                
+                // Create a priority subsection
+                const priorityDiv = document.createElement('div');
+                priorityDiv.className = 'mb-4';
+                
+                // Add priority header
+                const priorityHeader = document.createElement('h4');
+                priorityHeader.className = `text-sm font-medium mb-2 ${priority.color}`;
+                priorityHeader.textContent = priority.label;
+                priorityDiv.appendChild(priorityHeader);
+                
+                // Add each citation in this priority
+                for (const [keyword, citation] of Object.entries(priorityCitations)) {
+                    // Skip error messages
+                    if (keyword === 'error') continue;
+                    
+                    // Skip if citation is not a string
+                    if (typeof citation !== 'string') {
+                        console.warn(`Citation for "${keyword}" is not a string:`, citation);
+                        continue;
+                    }
+                    
+                    const citationDiv = document.createElement('div');
+                    citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                    
+                    const keywordHeader = document.createElement('h4');
+                    keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
+                    keywordHeader.textContent = keyword;
+                    citationDiv.appendChild(keywordHeader);
+                    
+                    const citationText = document.createElement('p');
+                    citationText.className = 'text-xs text-gray-700';
+                    citationText.textContent = citation;
+                    citationDiv.appendChild(citationText);
+                    
+                    priorityDiv.appendChild(citationDiv);
+                    totalCitations++;
+                }
+                
+                if (priorityDiv.childNodes.length > 1) { // Only add if there are actual citations
+                    sectionContainer.appendChild(priorityDiv);
+                }
+            }
+            
+            // If no citations were added, show a message
+            if (totalCitations === 0) {
+                const noCitationsMsg = document.createElement('p');
+                noCitationsMsg.className = 'text-sm text-gray-500 italic';
+                noCitationsMsg.textContent = 'No citations found. Try adjusting your resume to include more relevant experience.';
+                sectionContainer.appendChild(noCitationsMsg);
+            }
+        } else {
+            console.log("Processing flat citations format");
+            
+            // Handle the old flat format for backward compatibility
+            let citationsAdded = 0;
+            
+            for (const [keyword, citation] of Object.entries(citations)) {
+                // Skip if citation is not a string or is empty
+                if (typeof citation !== 'string' || !citation.trim()) {
+                    console.warn(`Invalid citation for "${keyword}":`, citation);
+                    continue;
+                }
+                
+                const citationDiv = document.createElement('div');
+                citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                
+                const keywordHeader = document.createElement('h4');
+                keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-700';
+                keywordHeader.textContent = keyword;
+                citationDiv.appendChild(keywordHeader);
+                
+                const citationText = document.createElement('p');
+                citationText.className = 'text-xs text-gray-700';
+                citationText.textContent = citation;
+                citationDiv.appendChild(citationText);
+                
+                sectionContainer.appendChild(citationDiv);
+                citationsAdded++;
+            }
+            
+            // If no citations were added, show a message
+            if (citationsAdded === 0) {
+                const noCitationsMsg = document.createElement('p');
+                noCitationsMsg.className = 'text-sm text-gray-500 italic';
+                noCitationsMsg.textContent = 'No citations found. Try adjusting your resume to include more relevant experience.';
+                sectionContainer.appendChild(noCitationsMsg);
+            }
+        }
+        
+        // Show the Create Profile button after citations are found
+        if (section === 'keywords') {
+            this.showCreateProfileButton();
+        }
+    },
+    
+    /**
+     * Show the Create Profile button at the top of the page
+     */
+    showCreateProfileButton: function() {
+        const createProfileButtonContainer = document.getElementById('createProfileButtonContainer');
+        if (createProfileButtonContainer) {
+            createProfileButtonContainer.classList.remove('hidden');
         }
     },
     
@@ -102,31 +230,78 @@ const CitationsManager = {
         // Prepare the citations data
         let citationsText = '# Interview Preparation Notes\n\n';
         
-        // Add keywords citations
-        if (window.citationsData?.keywords && Object.keys(window.citationsData.keywords).length > 0) {
-            citationsText += '## Keywords\n\n';
-            
-            for (const [keyword, citation] of Object.entries(window.citationsData.keywords)) {
-                citationsText += `### ${keyword}\n${citation}\n\n`;
+        // Process each section (keywords, career_profile, core_competencies)
+        for (const [section, citations] of Object.entries(window.citationsData || {})) {
+            if (!citations || Object.keys(citations).length === 0) {
+                continue; // Skip empty sections
             }
-        }
-        
-        // Add career profile citations
-        if (window.citationsData?.career_profile && Object.keys(window.citationsData.career_profile).length > 0) {
-            citationsText += '## Career Profile\n\n';
             
-            for (const [keyword, citation] of Object.entries(window.citationsData.career_profile)) {
-                citationsText += `### ${keyword}\n${citation}\n\n`;
+            // Add section header
+            let sectionTitle = '';
+            switch(section) {
+                case 'keywords':
+                    sectionTitle = 'Keywords';
+                    break;
+                case 'career_profile':
+                    sectionTitle = 'Career Profile';
+                    break;
+                case 'core_competencies':
+                    sectionTitle = 'Core Competencies';
+                    break;
+                default:
+                    sectionTitle = 'Citations';
             }
-        }
-        
-        // Add core competencies citations
-        if (window.citationsData?.core_competencies && Object.keys(window.citationsData.core_competencies).length > 0) {
-            citationsText += '## Core Competencies\n\n';
             
-            for (const [competency, citation] of Object.entries(window.citationsData.core_competencies)) {
-                citationsText += `### ${competency}\n${citation}\n\n`;
+            citationsText += `## ${sectionTitle}\n\n`;
+            
+            // Check if citations is in the new structured format with priority buckets
+            const isStructuredFormat = citations && 
+                (citations.high_priority || citations.medium_priority || 
+                 citations.low_priority || citations.fallback_extraction);
+            
+            if (isStructuredFormat) {
+                // Process each priority bucket
+                const priorities = [
+                    { key: 'high_priority', label: 'HIGH PRIORITY' },
+                    { key: 'medium_priority', label: 'MEDIUM PRIORITY' },
+                    { key: 'low_priority', label: 'LOW PRIORITY' },
+                    { key: 'fallback_extraction', label: 'ADDITIONAL CITATIONS' }
+                ];
+                
+                // Add each priority section
+                for (const priority of priorities) {
+                    const priorityCitations = citations[priority.key];
+                    
+                    // Skip empty priority buckets
+                    if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                        continue;
+                    }
+                    
+                    // Add priority header
+                    citationsText += `### ${priority.label}\n\n`;
+                    
+                    // Add each citation in this priority
+                    for (const [keyword, citation] of Object.entries(priorityCitations)) {
+                        // Skip error messages
+                        if (keyword === 'error') continue;
+                        
+                        // Skip if citation is not a string
+                        if (typeof citation !== 'string') continue;
+                        
+                        citationsText += `#### ${keyword}\n${citation}\n\n`;
+                    }
+                }
+            } else {
+                // Handle the old flat format for backward compatibility
+                for (const [keyword, citation] of Object.entries(citations)) {
+                    // Skip if citation is not a string
+                    if (typeof citation !== 'string') continue;
+                    
+                    citationsText += `### ${keyword}\n${citation}\n\n`;
+                }
             }
+            
+            citationsText += '\n';
         }
         
         // Create and download the file

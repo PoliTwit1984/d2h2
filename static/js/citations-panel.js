@@ -54,22 +54,91 @@ function addCitationsToPanel(section, citations) {
     sectionHeader.textContent = sectionTitle;
     sectionDiv.appendChild(sectionHeader);
     
-    // Add each citation
-    for (const [keyword, citation] of Object.entries(citations)) {
-        const citationDiv = document.createElement('div');
-        citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+    // Check if citations is in the new structured format with priority buckets
+    const isStructuredFormat = citations && 
+        (citations.high_priority || citations.medium_priority || 
+         citations.low_priority || citations.fallback_extraction);
+    
+    if (isStructuredFormat) {
+        // Process each priority bucket
+        const priorities = [
+            { key: 'high_priority', label: 'High Priority', color: 'text-red-700' },
+            { key: 'medium_priority', label: 'Medium Priority', color: 'text-orange-700' },
+            { key: 'low_priority', label: 'Low Priority', color: 'text-yellow-700' },
+            { key: 'fallback_extraction', label: 'Additional Citations', color: 'text-blue-700' }
+        ];
         
-        const keywordHeader = document.createElement('h4');
-        keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-700';
-        keywordHeader.textContent = keyword;
-        citationDiv.appendChild(keywordHeader);
-        
-        const citationText = document.createElement('p');
-        citationText.className = 'text-xs text-gray-700';
-        citationText.textContent = citation;
-        citationDiv.appendChild(citationText);
-        
-        sectionDiv.appendChild(citationDiv);
+        // Add each priority section
+        for (const priority of priorities) {
+            const priorityCitations = citations[priority.key];
+            
+            // Skip empty priority buckets
+            if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                continue;
+            }
+            
+            // Create a priority subsection
+            const priorityDiv = document.createElement('div');
+            priorityDiv.className = 'mb-4';
+            
+            // Add priority header
+            const priorityHeader = document.createElement('h4');
+            priorityHeader.className = `text-sm font-medium mb-2 ${priority.color}`;
+            priorityHeader.textContent = priority.label;
+            priorityDiv.appendChild(priorityHeader);
+            
+            // Add each citation in this priority
+            for (const [keyword, citation] of Object.entries(priorityCitations)) {
+                // Skip error messages
+                if (keyword === 'error') continue;
+                
+                const citationDiv = document.createElement('div');
+                citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                
+                const keywordHeader = document.createElement('h4');
+                keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
+                keywordHeader.textContent = keyword;
+                citationDiv.appendChild(keywordHeader);
+                
+                const citationText = document.createElement('p');
+                citationText.className = 'text-xs text-gray-700';
+                citationText.textContent = citation;
+                citationDiv.appendChild(citationText);
+                
+                priorityDiv.appendChild(citationDiv);
+            }
+            
+            sectionDiv.appendChild(priorityDiv);
+        }
+    } else {
+        // Handle the old flat format for backward compatibility
+        for (const [keyword, citation] of Object.entries(citations)) {
+            // Skip if citation is not a string (e.g., it's an object or array)
+            if (typeof citation !== 'string') continue;
+            
+            const citationDiv = document.createElement('div');
+            citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+            
+            const keywordHeader = document.createElement('h4');
+            keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-700';
+            keywordHeader.textContent = keyword;
+            citationDiv.appendChild(keywordHeader);
+            
+            const citationText = document.createElement('p');
+            citationText.className = 'text-xs text-gray-700';
+            citationText.textContent = citation;
+            citationDiv.appendChild(citationText);
+            
+            sectionDiv.appendChild(citationDiv);
+        }
+    }
+    
+    // If no citations were added, show a message
+    if (sectionDiv.childElementCount <= 1) { // Only the header
+        const noCitationsMsg = document.createElement('p');
+        noCitationsMsg.className = 'text-sm text-gray-500 italic';
+        noCitationsMsg.textContent = 'No citations found. Try adjusting your resume to include more relevant experience.';
+        sectionDiv.appendChild(noCitationsMsg);
     }
     
     // Check if this section already exists
@@ -102,7 +171,7 @@ function saveCitationsForInterviewPrep() {
     // Add each section
     for (const [section, citations] of Object.entries(citationsData)) {
         // Skip empty sections
-        if (Object.keys(citations).length === 0) {
+        if (!citations || Object.keys(citations).length === 0) {
             continue;
         }
         
@@ -125,13 +194,56 @@ function saveCitationsForInterviewPrep() {
         citationsText += sectionTitle + "\n";
         citationsText += "".padEnd(sectionTitle.length, '-') + "\n\n";
         
-        // Add each citation
-        for (const [keyword, citation] of Object.entries(citations)) {
-            citationsText += `${keyword}:\n`;
-            citationsText += `${citation}\n\n`;
-        }
+        // Check if citations is in the new structured format with priority buckets
+        const isStructuredFormat = citations && 
+            (citations.high_priority || citations.medium_priority || 
+             citations.low_priority || citations.fallback_extraction);
         
-        citationsText += "\n";
+        if (isStructuredFormat) {
+            // Process each priority bucket
+            const priorities = [
+                { key: 'high_priority', label: 'HIGH PRIORITY' },
+                { key: 'medium_priority', label: 'MEDIUM PRIORITY' },
+                { key: 'low_priority', label: 'LOW PRIORITY' },
+                { key: 'fallback_extraction', label: 'ADDITIONAL CITATIONS' }
+            ];
+            
+            // Add each priority section
+            for (const priority of priorities) {
+                const priorityCitations = citations[priority.key];
+                
+                // Skip empty priority buckets
+                if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                    continue;
+                }
+                
+                // Add priority header
+                citationsText += priority.label + "\n";
+                citationsText += "".padEnd(priority.label.length, '-') + "\n\n";
+                
+                // Add each citation in this priority
+                for (const [keyword, citation] of Object.entries(priorityCitations)) {
+                    // Skip error messages
+                    if (keyword === 'error') continue;
+                    
+                    citationsText += `${keyword}:\n`;
+                    citationsText += `${citation}\n\n`;
+                }
+                
+                citationsText += "\n";
+            }
+        } else {
+            // Handle the old flat format for backward compatibility
+            for (const [keyword, citation] of Object.entries(citations)) {
+                // Skip if citation is not a string
+                if (typeof citation !== 'string') continue;
+                
+                citationsText += `${keyword}:\n`;
+                citationsText += `${citation}\n\n`;
+            }
+            
+            citationsText += "\n";
+        }
     }
     
     // Create a form to submit the citations
