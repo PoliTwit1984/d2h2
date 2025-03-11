@@ -82,5 +82,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Citations Manager module not loaded');
     }
     
+    // Check if Guide Me panel script is loaded
+    if (typeof initializeGuidePanel === 'function') {
+        console.log('Guide Me panel script loaded');
+        // Guide panel is initialized in its own script via DOMContentLoaded
+    } else {
+        console.warn('Guide Me panel script not loaded or not initialized');
+    }
+    
     console.log('Application initialized');
 });

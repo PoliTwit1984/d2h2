@@ -9,7 +9,7 @@ from services.openai_service import get_json_response, get_text_response
 from services.keyword_service import extract_keywords, highlight_keywords
 from utils.text_processing import sanitize_text
 
-def generate_career_profile(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None):
+def generate_career_profile(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None, keywords_data=None):
     """
     Generate a tailored career profile based on job description and master resume.
     
@@ -21,6 +21,7 @@ def generate_career_profile(job_description, master_resume, keywords=None, exist
         job_title (str, optional): The job title
         company_name (str, optional): The company name
         industry (str, optional): The industry
+        keywords_data (dict, optional): Structured keywords data with priorities
         
     Returns:
         tuple: (profile, marked_profile, keywords, citations) - The generated profile,
@@ -30,6 +31,29 @@ def generate_career_profile(job_description, master_resume, keywords=None, exist
         # Extract keywords if not provided
         if not keywords:
             _, keywords, _ = extract_keywords(job_description, master_resume, job_title, company_name)
+        
+        # Process structured keywords data if provided
+        prioritized_keywords = []
+        if keywords_data:
+            # Extract keywords from the structured data
+            for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                if priority in keywords_data:
+                    for item in keywords_data[priority]:
+                        if isinstance(item, dict) and 'keyword' in item:
+                            # Check if this is a user-added keyword
+                            if 'user_added' in item and item['user_added']:
+                                # Prioritize user-added keywords
+                                prioritized_keywords.append(item['keyword'])
+                            else:
+                                # Add regular extracted keywords
+                                prioritized_keywords.append(item['keyword'])
+                        elif isinstance(item, str):
+                            prioritized_keywords.append(item)
+            
+            # If we have prioritized keywords, use them
+            if prioritized_keywords:
+                print(f"Using {len(prioritized_keywords)} prioritized keywords for career profile generation")
+                keywords = prioritized_keywords + [k for k in keywords if k not in prioritized_keywords]
         
         # Get job title, company name, and industry if provided
         job_title_value = job_title if job_title else "the position"
@@ -225,7 +249,7 @@ def find_profile_citations(profile, master_resume, job_title=None, company_name=
         print(f"Error finding profile citations: {str(e)}")
         return {}
 
-def generate_core_competencies(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None):
+def generate_core_competencies(job_description, master_resume, keywords=None, existing_citations=None, job_title=None, company_name=None, industry=None, keywords_data=None):
     """
     Generate core competencies based on job description and master resume.
     
@@ -237,6 +261,7 @@ def generate_core_competencies(job_description, master_resume, keywords=None, ex
         job_title (str, optional): The job title
         company_name (str, optional): The company name
         industry (str, optional): The industry
+        keywords_data (dict, optional): Structured keywords data with priorities
         
     Returns:
         tuple: (competencies, keywords, citations) - The generated competencies,
@@ -246,6 +271,29 @@ def generate_core_competencies(job_description, master_resume, keywords=None, ex
         # Extract keywords if not provided
         if not keywords:
             _, keywords, _ = extract_keywords(job_description, master_resume, job_title, company_name)
+        
+        # Process structured keywords data if provided
+        prioritized_keywords = []
+        if keywords_data:
+            # Extract keywords from the structured data
+            for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                if priority in keywords_data:
+                    for item in keywords_data[priority]:
+                        if isinstance(item, dict) and 'keyword' in item:
+                            # Check if this is a user-added keyword
+                            if 'user_added' in item and item['user_added']:
+                                # Prioritize user-added keywords
+                                prioritized_keywords.append(item['keyword'])
+                            else:
+                                # Add regular extracted keywords
+                                prioritized_keywords.append(item['keyword'])
+                        elif isinstance(item, str):
+                            prioritized_keywords.append(item)
+            
+            # If we have prioritized keywords, use them
+            if prioritized_keywords:
+                print(f"Using {len(prioritized_keywords)} prioritized keywords for core competencies generation")
+                keywords = prioritized_keywords + [k for k in keywords if k not in prioritized_keywords]
         
         # Get job title, company name, and industry if provided
         job_title_value = job_title if job_title else "the position"

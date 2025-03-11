@@ -77,6 +77,7 @@ def generate():
     job_description = request.form.get('job_description', '')
     master_resume = request.form.get('master_resume', '')
     keywords_json = request.form.get('keywords', '')
+    keywords_data_json = request.form.get('keywords_data', '')
     citations_json = request.form.get('citations_json', '')
     job_title = request.form.get('job_title', '')
     company_name = request.form.get('company_name', '')
@@ -88,6 +89,15 @@ def generate():
         try:
             import json
             provided_keywords = json.loads(keywords_json)
+        except:
+            pass
+    
+    # Parse structured keywords data if provided
+    keywords_data = None
+    if keywords_data_json:
+        try:
+            import json
+            keywords_data = json.loads(keywords_data_json)
         except:
             pass
     
@@ -116,7 +126,8 @@ def generate():
             existing_citations,
             job_title,
             company_name,
-            industry
+            industry,
+            keywords_data
         )
         
         return jsonify({
@@ -142,6 +153,7 @@ def generate_competencies():
     job_description = request.form.get('job_description', '')
     master_resume = request.form.get('master_resume', '')
     keywords_json = request.form.get('keywords', '')
+    keywords_data_json = request.form.get('keywords_data', '')
     citations_json = request.form.get('citations_json', '')
     job_title = request.form.get('job_title', '')
     company_name = request.form.get('company_name', '')
@@ -153,6 +165,15 @@ def generate_competencies():
         try:
             import json
             provided_keywords = json.loads(keywords_json)
+        except:
+            pass
+    
+    # Parse structured keywords data if provided
+    keywords_data = None
+    if keywords_data_json:
+        try:
+            import json
+            keywords_data = json.loads(keywords_data_json)
         except:
             pass
     
@@ -181,7 +202,8 @@ def generate_competencies():
             existing_citations,
             job_title,
             company_name,
-            industry
+            industry,
+            keywords_data
         )
         
         return jsonify({
@@ -466,6 +488,64 @@ def save_citations():
         return jsonify({
             'success': False,
             'message': f'Error saving citations: {str(e)}'
+        }), 500
+
+@app.route('/find-keyword-citation', methods=['POST'])
+def find_keyword_citation():
+    """Find citation for a single keyword in the resume."""
+    # Get form data
+    keyword = request.form.get('keyword', '')
+    resume_text = request.form.get('resume_text', '')
+    
+    # Check if required fields are provided
+    if not keyword or not resume_text:
+        return jsonify({
+            'success': False,
+            'message': 'Keyword and resume text are required.'
+        }), 400
+    
+    try:
+        # Use OpenAI to find a citation for this keyword
+        from services.openai_service import get_text_response
+        
+        # Create a prompt to find evidence for this keyword
+        prompt = f"""
+        Find the strongest evidence in the resume that demonstrates the person has experience with "{keyword}".
+        Return only the relevant excerpt from the resume (1-2 sentences) that best supports this skill or competency.
+        If you can't find clear evidence, respond with "No clear evidence found."
+        
+        Resume:
+        {resume_text}
+        """
+        
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that finds evidence in resumes."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        # Get the citation
+        citation = get_text_response(messages, max_tokens=200, temperature=0.3)
+        
+        # Clean up the citation
+        citation = citation.strip()
+        if citation.lower() == "no clear evidence found." or "no clear evidence" in citation.lower():
+            return jsonify({
+                'success': False,
+                'message': 'No citation found for this keyword.'
+            })
+        
+        return jsonify({
+            'success': True,
+            'message': 'Citation found successfully!',
+            'citation': citation,
+            'keyword': keyword
+        })
+    
+    except Exception as e:
+        # Handle any errors
+        return jsonify({
+            'success': False,
+            'message': f'Error finding citation: {str(e)}'
         }), 500
 
 if __name__ == '__main__':

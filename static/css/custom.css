@@ -1,6 +1,5 @@
 /* Custom CSS for dumped2hire beyond Tailwind */
 
-/* Import modern fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500&display=swap');
 
 /* Color variables */
@@ -450,4 +449,104 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 .low-priority-indicator {
     background-color: var(--d2h-yellow);
+}
+
+/* Guide Me Panel Styles */
+#guideMePanel {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+#guideMePanel:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+#guideMeContent {
+    font-size: 0.9rem;
+}
+
+/* Guide Step Styling */
+#guideMePanel .rounded-full {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* Active Step */
+#guideMePanel .bg-green-50 {
+    border-color: rgba(46, 204, 113, 0.3);
+    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.1);
+    transition: all 0.3s ease;
+}
+
+#guideMePanel .bg-green-50:hover {
+    box-shadow: 0 3px 8px rgba(46, 204, 113, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Inactive Step */
+#guideMePanel .opacity-50 {
+    transition: all 0.3s ease;
+}
+
+/* Guide Panel Buttons */
+#guideMePanel button {
+    transition: all 0.2s ease;
+}
+
+#guideMePanel button:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+#guideMePanel button:not([disabled]):active {
+    transform: translateY(0);
+}
+
+/* Guide Panel Input */
+#guideNewKeywordInput {
+    transition: all 0.2s ease;
+}
+
+#guideNewKeywordInput:not([disabled]):focus {
+    border-color: var(--d2h-green);
+    box-shadow: 0 0 0 3px var(--d2h-light-green);
+}
+
+/* Completed Step Checkmark */
+#guideMePanel svg {
+    transition: all 0.2s ease;
+}
+
+/* Step Number Animation */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#guideMePanel .bg-green-600 {
+    animation: pulse 2s infinite;
+}
+
+/* Guide Panel Responsive */
+@media (max-width: 768px) {
+    #guideMePanel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 50vh;
+        overflow-y: auto;
+        z-index: 50;
+        border-radius: 1rem 1rem 0 0;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    }
 }

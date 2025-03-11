@@ -140,6 +140,15 @@ function initializeNavigationHandlers() {
         });
     }
     
+    // Save to Citations Panel button click handler
+    const saveToCitationsPanelBtn = document.getElementById('saveToCitationsPanelBtn');
+    if (saveToCitationsPanelBtn) {
+        saveToCitationsPanelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            saveToCitationsPanel();
+        });
+    }
+    
     const saveCompetenciesBtn = document.getElementById('saveCompetenciesBtn');
     if (saveCompetenciesBtn) {
         saveCompetenciesBtn.addEventListener('click', function(e) {
@@ -330,9 +339,14 @@ function generateCareerProfile() {
     formData.append('job_description', jobDescriptionTextarea.value);
     formData.append('master_resume', masterResumeTextarea.value);
     
-    // Include keywords if available
+    // Include keywords if available - send both the flat list and the structured data
     if (extractedKeywords.length > 0) {
         formData.append('keywords', JSON.stringify(extractedKeywords));
+    }
+    
+    // Include the structured keywords data with priorities
+    if (keywordsData && keywordsData.keywords) {
+        formData.append('keywords_data', JSON.stringify(keywordsData.keywords));
     }
     
     // Include citations if available
@@ -366,8 +380,9 @@ function generateCareerProfile() {
             markedProfileContent.innerHTML = data.marked_profile;
             highlightedProfile.classList.remove('hidden');
             
-            // Show the save button
+            // Show the save buttons
             document.getElementById('saveProfileBtn').classList.remove('hidden');
+            document.getElementById('saveToCitationsPanelBtn').classList.remove('hidden');
             
             // Show the next button
             document.getElementById('nextBtn').classList.remove('hidden');
@@ -442,9 +457,14 @@ function generateCoreCompetencies() {
     formData.append('job_description', jobDescriptionTextarea.value);
     formData.append('master_resume', masterResumeTextarea.value);
     
-    // Include keywords if available
+    // Include keywords if available - send both the flat list and the structured data
     if (extractedKeywords.length > 0) {
         formData.append('keywords', JSON.stringify(extractedKeywords));
+    }
+    
+    // Include the structured keywords data with priorities
+    if (keywordsData && keywordsData.keywords) {
+        formData.append('keywords_data', JSON.stringify(keywordsData.keywords));
     }
     
     // Include citations if available
@@ -1063,12 +1083,20 @@ function addNewKeyword() {
             };
         }
         
+        // Create a keyword object with score for consistency
+        const keywordObj = {
+            keyword: keyword,
+            score: priority === 'high' ? 0.9 : (priority === 'medium' ? 0.7 : 0.5),
+            user_added: true  // Flag to indicate this was manually added
+        };
+        
+        // Add to the appropriate priority list
         if (priority === 'high') {
-            keywordsData.keywords.high_priority.push(keyword);
+            keywordsData.keywords.high_priority.push(keywordObj);
         } else if (priority === 'medium') {
-            keywordsData.keywords.medium_priority.push(keyword);
+            keywordsData.keywords.medium_priority.push(keywordObj);
         } else if (priority === 'low') {
-            keywordsData.keywords.low_priority.push(keyword);
+            keywordsData.keywords.low_priority.push(keywordObj);
         }
         
         // Add to the extracted keywords array
@@ -1076,12 +1104,90 @@ function addNewKeyword() {
             extractedKeywords.push(keyword);
         }
         
+        // If we have a master resume, try to find citations for this keyword
+        const masterResumeTextarea = document.getElementById('masterResume');
+        if (masterResumeTextarea && masterResumeTextarea.value.trim()) {
+            findCitationForKeyword(keyword, masterResumeTextarea.value.trim());
+        }
+        
         // Clear the input field
         newKeywordInput.value = '';
         
         // Refresh the keywords display
         displayEnhancedKeywords(keywordsData, extractedKeywords);
+        
+        console.log(`Added new keyword: ${keyword} with priority: ${priority}`);
+        console.log(`Updated extractedKeywords array now has ${extractedKeywords.length} keywords`);
     }
+}
+
+// Find citation for a single keyword in the resume
+function findCitationForKeyword(keyword, resumeText) {
+    // Only proceed if we have both a keyword and resume text
+    if (!keyword || !resumeText) return;
+    
+    // Create a simple prompt to find evidence for this keyword
+    const formData = new FormData();
+    formData.append('keyword', keyword);
+    formData.append('resume_text', resumeText);
+    
+    // Show a subtle loading indicator
+    showSuccessMessage(`Finding evidence for "${keyword}"...`);
+    
+    fetch('/find-keyword-citation', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.citation) {
+            // Store the citation
+            if (!citationsData.keywords) {
+                citationsData.keywords = {};
+            }
+            
+            citationsData.keywords[keyword] = data.citation;
+            
+            // Add to the citations panel if the function exists
+            if (typeof addCitationsToPanel === 'function') {
+                const citationObj = {};
+                citationObj[keyword] = data.citation;
+                addCitationsToPanel('keywords', citationObj);
+                
+                // If this is a user-added keyword, make sure it's included in the next generation
+                const isUserAdded = checkIfUserAddedKeyword(keyword);
+                if (isUserAdded) {
+                    console.log(`User-added keyword "${keyword}" with citation will be included in generation`);
+                }
+            }
+            
+            console.log(`Found citation for keyword: ${keyword}`);
+            showSuccessMessage(`Found evidence for "${keyword}"`);
+        } else {
+            console.log(`No citation found for keyword: ${keyword}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error finding citation:', error);
+    });
+}
+
+// Check if a keyword was manually added by the user
+function checkIfUserAddedKeyword(keyword) {
+    if (!keywordsData.keywords) return false;
+    
+    // Check in each priority level
+    for (const priority of ['high_priority', 'medium_priority', 'low_priority']) {
+        if (keywordsData.keywords[priority]) {
+            for (const item of keywordsData.keywords[priority]) {
+                if (typeof item === 'object' && item.keyword === keyword && item.user_added) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
 }
 
 // Save career profile to a text file
@@ -1123,6 +1229,123 @@ function saveCompetencies() {
         showSuccessMessage('Core competencies saved to file!');
     } else {
         showAlert('Please generate core competencies first.');
+    }
+}
+
+// Save career profile citations to the citations panel
+function saveToCitationsPanel() {
+    // Check if we have career profile citations
+    if (citationsData.career_profile && Object.keys(citationsData.career_profile).length > 0) {
+        // Get the citations container
+        const citationsContainer = document.getElementById('citationsSection');
+        const citationsContent = document.getElementById('citationsContainer');
+        
+        if (citationsContainer && citationsContent) {
+            // Show the citations section if it's hidden
+            citationsContainer.classList.remove('hidden');
+            
+            // Clear existing content
+            citationsContent.innerHTML = '';
+            
+            // Check if the citations data is in the structured format
+            const isStructuredFormat = citationsData.career_profile && 
+                (citationsData.career_profile.high_priority || 
+                 citationsData.career_profile.medium_priority || 
+                 citationsData.career_profile.low_priority || 
+                 citationsData.career_profile.fallback_extraction);
+            
+            if (isStructuredFormat) {
+                // Process structured format
+                const priorities = [
+                    { key: 'high_priority', label: 'High Priority', color: 'text-red-700' },
+                    { key: 'medium_priority', label: 'Medium Priority', color: 'text-orange-700' },
+                    { key: 'low_priority', label: 'Low Priority', color: 'text-yellow-700' },
+                    { key: 'fallback_extraction', label: 'Additional Citations', color: 'text-blue-700' }
+                ];
+                
+                // Add each priority section
+                for (const priority of priorities) {
+                    const priorityCitations = citationsData.career_profile[priority.key];
+                    
+                    // Skip empty priority buckets
+                    if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                        continue;
+                    }
+                    
+                    // Create a priority subsection
+                    const priorityDiv = document.createElement('div');
+                    priorityDiv.className = 'mb-4';
+                    
+                    // Add priority header
+                    const priorityHeader = document.createElement('h4');
+                    priorityHeader.className = `text-sm font-medium mb-2 ${priority.color}`;
+                    priorityHeader.textContent = priority.label;
+                    priorityDiv.appendChild(priorityHeader);
+                    
+                    // Add each citation in this priority
+                    for (const [keyword, citation] of Object.entries(priorityCitations)) {
+                        // Skip error messages
+                        if (keyword === 'error') continue;
+                        
+                        // Skip if citation is not a string
+                        if (typeof citation !== 'string') continue;
+                        
+                        const citationDiv = document.createElement('div');
+                        citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                        
+                        const keywordHeader = document.createElement('h4');
+                        keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
+                        keywordHeader.textContent = keyword;
+                        citationDiv.appendChild(keywordHeader);
+                        
+                        const citationText = document.createElement('p');
+                        citationText.className = 'text-xs text-gray-700';
+                        citationText.textContent = citation;
+                        citationDiv.appendChild(citationText);
+                        
+                        priorityDiv.appendChild(citationDiv);
+                    }
+                    
+                    if (priorityDiv.childNodes.length > 1) { // Only add if there are actual citations
+                        citationsContent.appendChild(priorityDiv);
+                    }
+                }
+            } else {
+                // Handle flat format
+                for (const [keyword, citation] of Object.entries(citationsData.career_profile)) {
+                    // Skip if citation is not a string or is empty
+                    if (typeof citation !== 'string' || !citation.trim()) continue;
+                    
+                    const citationDiv = document.createElement('div');
+                    citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                    
+                    const keywordHeader = document.createElement('h4');
+                    keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-700';
+                    keywordHeader.textContent = keyword;
+                    citationDiv.appendChild(keywordHeader);
+                    
+                    const citationText = document.createElement('p');
+                    citationText.className = 'text-xs text-gray-700';
+                    citationText.textContent = citation;
+                    citationDiv.appendChild(citationText);
+                    
+                    citationsContent.appendChild(citationDiv);
+                }
+            }
+            
+            // Show success message
+            showSuccessMessage('Career profile citations saved to panel!');
+            
+            // Also add to the main citations panel if the function exists
+            if (typeof addCitationsToPanel === 'function') {
+                addCitationsToPanel('career_profile', citationsData.career_profile);
+                showSuccessMessage('Career profile citations added to main citations panel!');
+            }
+        } else {
+            showAlert('Citations container not found.');
+        }
+    } else {
+        showAlert('No career profile citations available.');
     }
 }
 

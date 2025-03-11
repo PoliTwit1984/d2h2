@@ -63,6 +63,9 @@
         </header>
         
         <main>
+            <!-- Alert Container for messages -->
+            <div id="alertContainer" class="mb-4"></div>
+            
             <form id="generatorForm">
                 <!-- Keywords Section -->
                 <div id="keywordsSection" class="section-box bg-background bg-opacity-50">
@@ -146,6 +149,12 @@
                                 </svg>
                                 Save
                             </button>
+                            <button id="saveToCitationsPanelBtn" class="px-2 py-1 rounded text-xs hidden" style="background-color: rgba(75, 85, 99, 0.1); color: #4B5563; border: 1px solid rgba(75, 85, 99, 0.2);" title="Save to Citations Panel">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#4B5563">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Save to Citations Panel
+                            </button>
                             <button id="nextBtn" class="px-2 py-1 rounded text-xs hidden" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" title="Next section">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -175,16 +184,6 @@
                         <div id="markedProfileContent" class="text-sm p-3 bg-gray-50 rounded"></div>
                     </div>
                     
-                    <!-- Citations from Master Resume (initially hidden) -->
-                    <div id="citationsSection" class="mt-4 p-4 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 134, 171, 0.3);">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
-                            </svg>
-                            Supporting Evidence from Your Resume
-                        </h3>
-                        <div id="citationsContainer" class="text-sm"></div>
-                    </div>
                     
                     <!-- Keywords List (initially hidden) -->
                     <div id="keywordsList" class="mt-4 p-3 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 204, 113, 0.3);">
@@ -243,16 +242,6 @@
                         </div>
                     </div>
                     
-                    <!-- Competencies Citations (initially hidden) -->
-                    <div id="competenciesCitationsSection" class="mt-4 p-4 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 134, 171, 0.3);">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
-                            </svg>
-                            Supporting Evidence from Your Resume
-                        </h3>
-                        <div id="competenciesCitationsContainer" class="text-sm"></div>
-                    </div>
                     
                     <!-- Competencies Keywords List (initially hidden) -->
                     <div id="competenciesKeywordsList" class="mt-4 p-3 bg-white rounded-md shadow-sm hidden" style="border: 1px solid rgba(46, 204, 113, 0.3);">
@@ -316,8 +305,7 @@
         <div id="citationsPanel" class="hidden md:block w-80 bg-white rounded-lg shadow-md border border-borderColor p-4 ml-4 sticky top-4 max-h-screen overflow-y-auto">
             <h2 class="text-lg font-semibold mb-3 text-primary flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" style="color: #2E86AB;" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="
-<path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
                 </svg>
                 Citations Panel
             </h2>
@@ -337,6 +325,96 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Guide Me Panel -->
+        <div id="guideMePanel" class="hidden md:block w-80 bg-white rounded-lg shadow-md border border-borderColor p-4 ml-4 sticky top-4 max-h-screen overflow-y-auto">
+            <h2 class="text-lg font-semibold mb-3 text-primary flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" style="color: #2ECC71;" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+                </svg>
+                Guide Me
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">Follow these steps to create your tailored resume.</p>
+            
+            <div id="guideMeContent" class="space-y-6">
+                <!-- Step 1: Paste Resume & Job Description -->
+                <div id="guideStep1" class="p-3 rounded-md border border-green-200 bg-green-50">
+                    <h3 class="text-sm font-semibold text-green-700 flex items-center">
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-green-600 text-white text-xs mr-2">1</span>
+                        Paste Resume & Job Description
+                    </h3>
+                    <p class="text-xs text-gray-600 mt-2 mb-3">Paste your master resume and the job description you're applying for in the text areas below.</p>
+                    <button id="guideExtractKeywordsBtn" class="w-full px-3 py-2 rounded text-sm" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Extract Keywords
+                    </button>
+                </div>
+                
+                <!-- Step 2: Review & Enhance Keywords -->
+                <div id="guideStep2" class="p-3 rounded-md border border-gray-200 bg-gray-50 opacity-50">
+                    <h3 class="text-sm font-semibold text-gray-500 flex items-center">
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-gray-400 text-white text-xs mr-2">2</span>
+                        Review & Enhance Keywords
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-2 mb-3">Review the extracted keywords and add any additional ones that are relevant to the job.</p>
+                    <div class="flex space-x-2">
+                        <input type="text" id="guideNewKeywordInput" class="input-area py-1 px-2 flex-grow text-sm bg-gray-100" placeholder="Add a keyword..." disabled>
+                        <select id="guideNewKeywordPriority" class="border border-gray-300 rounded-md py-1 px-2 text-xs bg-gray-100" disabled>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                        <button id="guideAddKeywordBtn" class="px-2 py-1 rounded text-xs opacity-50" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="guideContinueBtn" class="w-full px-3 py-2 rounded text-sm mt-3 opacity-50" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" disabled>
+                        Continue to Generation
+                    </button>
+                </div>
+                
+                <!-- Step 3: Generate Profile & Competencies -->
+                <div id="guideStep3" class="p-3 rounded-md border border-gray-200 bg-gray-50 opacity-50">
+                    <h3 class="text-sm font-semibold text-gray-500 flex items-center">
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-gray-400 text-white text-xs mr-2">3</span>
+                        Generate Content
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-2 mb-3">Generate your tailored career profile and core competencies.</p>
+                    <div class="space-y-2">
+                        <button id="guideGenerateProfileBtn" class="w-full px-3 py-2 rounded text-sm opacity-50" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" disabled>
+                            Generate Career Profile
+                        </button>
+                        <button id="guideGenerateCompetenciesBtn" class="w-full px-3 py-2 rounded text-sm opacity-50" style="background-color: rgba(46, 204, 113, 0.1); color: #2ECC71; border: 1px solid rgba(46, 204, 113, 0.2);" disabled>
+                            Generate Core Competencies
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Review & Save -->
+                <div id="guideStep4" class="p-3 rounded-md border border-gray-200 bg-gray-50 opacity-50">
+                    <h3 class="text-sm font-semibold text-gray-500 flex items-center">
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-gray-400 text-white text-xs mr-2">4</span>
+                        Review & Save
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-2 mb-3">Review your generated content and save it for your application.</p>
+                    <div class="space-y-2">
+                        <button id="guideSaveProfileBtn" class="w-full px-3 py-2 rounded text-sm opacity-50" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" disabled>
+                            Save Career Profile
+                        </button>
+                        <button id="guideSaveCompetenciesBtn" class="w-full px-3 py-2 rounded text-sm opacity-50" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" disabled>
+                            Save Core Competencies
+                        </button>
+                        <button id="guideSaveCitationsBtn" class="w-full px-3 py-2 rounded text-sm opacity-50" style="background-color: rgba(46, 134, 171, 0.1); color: #2E86AB; border: 1px solid rgba(46, 134, 171, 0.2);" disabled>
+                            Save Interview Prep Notes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Load JavaScript modules -->
@@ -349,6 +427,9 @@
     
     <!-- Load main JavaScript file -->
     <script src="/static/js/main-new.js"></script>
+    
+    <!-- Load Guide Me panel JavaScript -->
+    <script src="/static/js/guide-panel.js"></script>
     
     <!-- Load legacy JavaScript files -->
     <script src="/static/js/ui-utils.js"></script>
