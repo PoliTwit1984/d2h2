@@ -43,26 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize the keywords section functionality
 function initializeKeywordsSection() {
-    const extractKeywordsBtn = document.getElementById('extractKeywordsBtn');
-    const continueToProfileBtn = document.getElementById('continueToProfileBtn');
+    // Note: Extract Keywords and Continue to Career Profile buttons have been removed
     const addKeywordBtn = document.getElementById('addKeywordBtn');
     const newKeywordInput = document.getElementById('newKeywordInput');
-    
-    // Extract keywords button click handler
-    if (extractKeywordsBtn) {
-        extractKeywordsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            extractKeywords();
-        });
-    }
-    
-    // Continue to profile button click handler
-    if (continueToProfileBtn) {
-        continueToProfileBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            navigateToCareerProfile();
-        });
-    }
     
     // Add keyword button click handler
     if (addKeywordBtn) {
@@ -259,8 +242,7 @@ function extractKeywords() {
                             // Display keywords in editable format with prioritization
                             displayEnhancedKeywords(keywordsData, extractedKeywords);
                             
-                            // Show continue button and keyword input
-                            document.getElementById('continueToProfileBtn').classList.remove('hidden');
+                            // Show keyword input
                             document.getElementById('keywordInputContainer').classList.remove('hidden');
                             
                             // Scroll to the keywords section
@@ -274,8 +256,7 @@ function extractKeywords() {
                 // Fallback to displaying keywords directly if no highlighted job description
                 displayEnhancedKeywords(keywordsData, extractedKeywords);
                 
-                // Show continue button and keyword input
-                document.getElementById('continueToProfileBtn').classList.remove('hidden');
+                // Show keyword input
                 document.getElementById('keywordInputContainer').classList.remove('hidden');
             }
             

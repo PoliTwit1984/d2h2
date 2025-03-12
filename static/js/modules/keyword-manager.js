@@ -16,26 +16,9 @@ const KeywordManager = {
      * Initialize event handlers for keyword-related functionality
      */
     initializeEventHandlers: function() {
-        const extractKeywordsBtn = document.getElementById('extractKeywordsBtn');
-        const continueToProfileBtn = document.getElementById('continueToProfileBtn');
+        // Note: Extract Keywords and Continue to Career Profile buttons have been removed
         const addKeywordBtn = document.getElementById('addKeywordBtn');
         const newKeywordInput = document.getElementById('newKeywordInput');
-        
-        // Extract keywords button click handler
-        if (extractKeywordsBtn) {
-            extractKeywordsBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                KeywordManager.extractKeywords();
-            });
-        }
-        
-        // Continue to profile button click handler
-        if (continueToProfileBtn) {
-            continueToProfileBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                UiManager.navigateToCareerProfile();
-            });
-        }
         
         // Add keyword button click handler
         if (addKeywordBtn) {
@@ -297,14 +280,28 @@ const KeywordManager = {
         const jobTitleValue = jobTitleInput ? jobTitleInput.value.trim() : '';
         const companyNameValue = companyNameInput ? companyNameInput.value.trim() : '';
         
-        // Show loading state
+        // Show loading state - check for both possible button IDs
         const extractKeywordsBtn = document.getElementById('extractKeywordsBtn');
-        extractKeywordsBtn.disabled = true;
-        extractKeywordsBtn.classList.add('opacity-75');
-        extractKeywordsBtn.innerHTML = `
-            <div class="spinner" style="width: 1rem; height: 1rem;"></div>
-            <span>Extracting...</span>
-        `;
+        const guideExtractKeywordsBtn = document.getElementById('guideExtractKeywordsBtn');
+        
+        // Update the button that was clicked (either the main one or the guide one)
+        if (extractKeywordsBtn) {
+            extractKeywordsBtn.disabled = true;
+            extractKeywordsBtn.classList.add('opacity-75');
+            extractKeywordsBtn.innerHTML = `
+                <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                <span>Extracting...</span>
+            `;
+        }
+        
+        if (guideExtractKeywordsBtn) {
+            guideExtractKeywordsBtn.disabled = true;
+            guideExtractKeywordsBtn.classList.add('opacity-75');
+            guideExtractKeywordsBtn.innerHTML = `
+                <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                <span>Extracting...</span>
+            `;
+        }
         
         // Call the API service to extract keywords
         ApiService.extractKeywords(
@@ -314,15 +311,28 @@ const KeywordManager = {
             companyNameValue
         )
         .then(data => {
-            // Reset button state
-            extractKeywordsBtn.disabled = false;
-            extractKeywordsBtn.classList.remove('opacity-75');
-            extractKeywordsBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Extract Keywords
-            `;
+            // Reset button state for both possible buttons
+            if (extractKeywordsBtn) {
+                extractKeywordsBtn.disabled = false;
+                extractKeywordsBtn.classList.remove('opacity-75');
+                extractKeywordsBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Extract Keywords
+                `;
+            }
+            
+            if (guideExtractKeywordsBtn) {
+                guideExtractKeywordsBtn.disabled = false;
+                guideExtractKeywordsBtn.classList.remove('opacity-75');
+                guideExtractKeywordsBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Extract Keywords
+                `;
+            }
             
             if (data.success) {
                 // Store keywords globally
@@ -396,15 +406,28 @@ const KeywordManager = {
             }
         })
         .catch(error => {
-            // Reset button state
-            extractKeywordsBtn.disabled = false;
-            extractKeywordsBtn.classList.remove('opacity-75');
-            extractKeywordsBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Extract Keywords
-            `;
+            // Reset button state for both possible buttons
+            if (extractKeywordsBtn) {
+                extractKeywordsBtn.disabled = false;
+                extractKeywordsBtn.classList.remove('opacity-75');
+                extractKeywordsBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Extract Keywords
+                `;
+            }
+            
+            if (guideExtractKeywordsBtn) {
+                guideExtractKeywordsBtn.disabled = false;
+                guideExtractKeywordsBtn.classList.remove('opacity-75');
+                guideExtractKeywordsBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Extract Keywords
+                `;
+            }
             
             console.error('Error:', error);
             UiManager.showAlert('An error occurred. Please try again.');

@@ -25,25 +25,95 @@ function initializeGuidePanel() {
     document.getElementById('guideSaveCompetenciesBtn').addEventListener('click', handleSaveCompetencies);
     document.getElementById('guideSaveCitationsBtn').addEventListener('click', handleSaveCitations);
     
-    // Add event listener for the Generate Citations button
-    // Use a more robust approach to ensure the event listener is attached
-    const attachCitationsButtonListener = () => {
-        const citationsBtn = document.getElementById('guideGenerateCitationsBtn');
-        if (citationsBtn) {
-            // Remove any existing listeners to prevent duplicates
-            citationsBtn.removeEventListener('click', handleGenerateCitations);
-            // Add the event listener
-            citationsBtn.addEventListener('click', handleGenerateCitations);
-            console.log('Event listener attached to Generate Citations button');
-        } else {
-            // If the button doesn't exist yet, try again after a short delay
-            console.log('Generate Citations button not found, will retry');
-            setTimeout(attachCitationsButtonListener, 500);
-        }
-    };
+// Add a global click handler for the Generate Citations button
+document.addEventListener('click', function(e) {
+    // Check if the click was on or inside the Generate Citations button
+    const citationsBtn = document.getElementById('guideGenerateCitationsBtn');
+    if (citationsBtn && (e.target === citationsBtn || citationsBtn.contains(e.target))) {
+        console.log('Generate Citations button clicked via global handler!');
+        e.preventDefault();
+        handleGenerateCitations();
+        return;
+    }
     
-    // Start the process of attaching the event listener
-    attachCitationsButtonListener();
+    // Also check for clicks on the button's text or icon
+    if (e.target.closest && e.target.closest('#guideGenerateCitationsBtn')) {
+        console.log('Generate Citations button clicked via delegation!');
+        e.preventDefault();
+        handleGenerateCitations();
+        return;
+    }
+    
+    // Check for clicks in the general area of the button (step 3)
+    const step3Element = document.getElementById('guideStep3');
+    if (step3Element && step3Element.contains(e.target)) {
+        // Check if the click was on a button-like element
+        if (e.target.tagName === 'BUTTON' || 
+            e.target.parentElement.tagName === 'BUTTON' ||
+            e.target.tagName === 'SVG' || 
+            e.target.tagName === 'PATH' ||
+            e.target.classList.contains('spinner')) {
+            console.log('Potential Generate Citations button area clicked!');
+            
+            // Force a call to handleGenerateCitations
+            setTimeout(() => {
+                handleGenerateCitations();
+            }, 100);
+        }
+    }
+});
+
+// Completely replace the Generate Citations button with a new one
+window.replaceCitationsButton = () => {
+    console.log('Attempting to replace the Generate Citations button');
+    const step3Element = document.getElementById('guideStep3');
+    if (!step3Element) {
+        console.error('Step 3 element not found');
+        return;
+    }
+    
+    // Find the existing button
+    const oldBtn = document.getElementById('guideGenerateCitationsBtn');
+    if (!oldBtn) {
+        console.error('Generate Citations button not found');
+        return;
+    }
+    
+    // Create a completely new button
+    const newBtn = document.createElement('button');
+    newBtn.id = 'guideGenerateCitationsBtn';
+    newBtn.className = 'w-full px-3 py-2 rounded text-sm';
+    newBtn.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+    newBtn.style.color = '#2ECC71';
+    newBtn.style.border = '1px solid rgba(46, 204, 113, 0.2)';
+    newBtn.disabled = false;
+    newBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        Generate Citations for Keywords
+    `;
+    
+    // Add a direct click event listener
+    newBtn.addEventListener('click', function(e) {
+        console.log('New Generate Citations button clicked!');
+        e.preventDefault();
+        e.stopPropagation();
+        handleGenerateCitations();
+    });
+    
+    // Replace the old button with the new one
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+    console.log('Generate Citations button successfully replaced');
+    
+    // Also add an inline onclick attribute as a fallback
+    newBtn.setAttribute('onclick', 'handleGenerateCitations(); return false;');
+};
+
+// Initialize the button replacement
+setTimeout(() => {
+    window.replaceCitationsButton();
+}, 1000);
     
     // Connect guide keyword input with main keyword input
     const guideKeywordInput = document.getElementById('guideNewKeywordInput');
@@ -75,12 +145,12 @@ function handleExtractKeywords() {
         return;
     }
     
-    // Directly extract keywords instead of clicking the button
+    // Directly extract keywords using the KeywordManager
     if (window.KeywordManager && typeof window.KeywordManager.extractKeywords === 'function') {
         window.KeywordManager.extractKeywords();
     } else {
-        // Fallback to clicking the button if the direct method is not available
-        document.getElementById('extractKeywordsBtn').click();
+        // Show error if the function is not available
+        showAlert('Extract keywords function not found. Please refresh the page and try again.');
     }
     
     // The application state change listeners will handle activating the next step
@@ -105,14 +175,13 @@ function handleAddKeyword() {
 // Handle Continue to Generation button click
 function handleContinueToGeneration() {
     // First, find keywords in resume
-    findKeywordsInResume(() => {
-        // After finding keywords, generate citations
-        generateCitations();
-    });
+    findKeywordsInResume();
+    // Note: We no longer automatically generate citations
+    // This allows the user to click the Generate Citations button in step 3
 }
 
 // Find keywords in resume
-function findKeywordsInResume(callback) {
+function findKeywordsInResume() {
     // Show loading state on the button
     const continueCitationsBtn = document.getElementById('guideContinueBtn');
     if (continueCitationsBtn) {
@@ -198,10 +267,33 @@ function findKeywordsInResume(callback) {
                     // Show a summary message
                     showSuccessMessage(`Found ${foundCount} out of ${totalCount} keywords in your resume.`);
                     
-                    // Continue with the callback (generate citations)
-                    if (callback && typeof callback === 'function') {
-                        callback();
-                    }
+                    // Activate step 3 (Generate Citations)
+                    activateStep(3);
+                    
+                    // Replace the Generate Citations button with a new one
+                    console.log('Replacing the Generate Citations button after activating step 3');
+                    setTimeout(() => {
+                        window.replaceCitationsButton();
+                        
+                        // Force enable the button
+                        const citationsBtn = document.getElementById('guideGenerateCitationsBtn');
+                        if (citationsBtn) {
+                            citationsBtn.disabled = false;
+                            citationsBtn.classList.remove('opacity-50');
+                            console.log('Explicitly enabled the Generate Citations button');
+                            
+                            // Add a direct click handler
+                            citationsBtn.onclick = function(e) {
+                                console.log('Generate Citations button clicked via direct onclick!');
+                                if (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }
+                                handleGenerateCitations();
+                                return false;
+                            };
+                        }
+                    }, 300);
                 } else {
                     // Show error message
                     showAlert(data.message || 'Error finding keywords in resume');
@@ -253,12 +345,12 @@ function findKeywordsInResume(callback) {
 
 // Generate citations
 function generateCitations() {
-    // Show loading state on the button
-    const continueCitationsBtn = document.getElementById('guideContinueBtn');
-    if (continueCitationsBtn) {
-        continueCitationsBtn.disabled = true;
-        continueCitationsBtn.classList.add('opacity-75');
-        continueCitationsBtn.innerHTML = `
+    // Show loading state on the Generate Citations button
+    const generateCitationsBtn = document.getElementById('guideGenerateCitationsBtn');
+    if (generateCitationsBtn) {
+        generateCitationsBtn.disabled = true;
+        generateCitationsBtn.classList.add('opacity-75');
+        generateCitationsBtn.innerHTML = `
             <div class="spinner" style="width: 1rem; height: 1rem;"></div>
             <span>Generating Citations...</span>
         `;
@@ -270,12 +362,12 @@ function generateCitations() {
             // Call the findCitations function
             window.KeywordManager.findCitations();
             
-            // Reset button state and proceed after a delay
+            // Reset button state after a delay
             setTimeout(() => {
-                if (continueCitationsBtn) {
-                    continueCitationsBtn.disabled = false;
-                    continueCitationsBtn.classList.remove('opacity-75');
-                    continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
+                if (generateCitationsBtn) {
+                    generateCitationsBtn.disabled = false;
+                    generateCitationsBtn.classList.remove('opacity-75');
+                    generateCitationsBtn.innerHTML = `Generate Citations for Keywords`;
                 }
                 
                 // Show success message
@@ -287,7 +379,10 @@ function generateCitations() {
                     citationsPanel.classList.remove('hidden');
                 }
                 
-                // Show the career profile section directly instead of clicking the button
+                // Activate step 4 (Generate Content)
+                activateStep(4);
+                
+                // Show the career profile section
                 const careerProfileSection = document.getElementById('careerProfileSection');
                 const keywordsSection = document.getElementById('keywordsSection');
                 
@@ -295,18 +390,15 @@ function generateCitations() {
                     keywordsSection.classList.add('hidden');
                     careerProfileSection.classList.remove('hidden');
                 }
-                
-                // Skip step 3 and activate step 4 (Generate Content) directly
-                activateStep(4);
             }, 3000); // Add a buffer of 3 seconds
         } catch (error) {
             console.error('Error generating citations:', error);
             
             // Reset button state
-            if (continueCitationsBtn) {
-                continueCitationsBtn.disabled = false;
-                continueCitationsBtn.classList.remove('opacity-75');
-                continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
+            if (generateCitationsBtn) {
+                generateCitationsBtn.disabled = false;
+                generateCitationsBtn.classList.remove('opacity-75');
+                generateCitationsBtn.innerHTML = `Generate Citations for Keywords`;
             }
             
             // Show error message
@@ -317,24 +409,54 @@ function generateCitations() {
         showAlert('Citation generation function not found. Please refresh the page and try again.');
         
         // Reset button state
-        if (continueCitationsBtn) {
-            continueCitationsBtn.disabled = false;
-            continueCitationsBtn.classList.remove('opacity-75');
-            continueCitationsBtn.innerHTML = `Find Keywords in Resume`;
+        if (generateCitationsBtn) {
+            generateCitationsBtn.disabled = false;
+            generateCitationsBtn.classList.remove('opacity-75');
+            generateCitationsBtn.innerHTML = `Generate Citations for Keywords`;
         }
     }
 }
 
 // Handle Generate Citations button click
 function handleGenerateCitations() {
-    console.log('handleGenerateCitations called');
+    console.log('handleGenerateCitations called - button click handler is working!');
+    
+    // Debug info
+    const citationsBtn = document.getElementById('guideGenerateCitationsBtn');
+    if (citationsBtn) {
+        console.log('Button state:', {
+            disabled: citationsBtn.disabled,
+            classList: Array.from(citationsBtn.classList),
+            innerHTML: citationsBtn.innerHTML.substring(0, 50) + '...',
+            parentNode: citationsBtn.parentNode ? citationsBtn.parentNode.id || 'unknown' : 'none'
+        });
+    } else {
+        console.error('Button not found when handler called!');
+    }
+    
+    // Debug KeywordManager
+    console.log('KeywordManager available:', !!window.KeywordManager);
+    console.log('findCitations function available:', window.KeywordManager && typeof window.KeywordManager.findCitations === 'function');
+    
+    // Debug window.keywordsData
+    console.log('keywordsData available:', !!window.keywordsData);
+    if (window.keywordsData) {
+        console.log('keywordsData structure:', JSON.stringify(window.keywordsData).substring(0, 100) + '...');
+    }
+    
+    // Debug master resume
+    const masterResumeTextarea = document.getElementById('masterResume');
+    console.log('Master resume available:', !!masterResumeTextarea && !!masterResumeTextarea.value);
+    if (masterResumeTextarea && masterResumeTextarea.value) {
+        console.log('Master resume length:', masterResumeTextarea.value.length);
+    }
     
     // Use KeywordManager.findCitations instead of the global function
     if (window.KeywordManager && typeof window.KeywordManager.findCitations === 'function') {
         // Show loading state
         const generateCitationsBtn = document.getElementById('guideGenerateCitationsBtn');
         if (generateCitationsBtn) {
-            console.log('Setting button to loading state');
+            console.log('Setting Generate Citations button to loading state');
             generateCitationsBtn.disabled = true;
             generateCitationsBtn.classList.add('opacity-75');
             generateCitationsBtn.innerHTML = `
@@ -346,29 +468,128 @@ function handleGenerateCitations() {
         }
         
         try {
-            console.log('Calling KeywordManager.findCitations()');
-            // Call the findCitations function
-            window.KeywordManager.findCitations();
+            console.log('Now calling KeywordManager.findCitations()');
             
-            // Reset button state after a delay
-            setTimeout(() => {
-                const updatedBtn = document.getElementById('guideGenerateCitationsBtn');
-                if (updatedBtn) {
-                    console.log('Resetting button state');
-                    updatedBtn.disabled = false;
-                    updatedBtn.classList.remove('opacity-75');
-                    updatedBtn.innerHTML = `Generate Citations for Keywords`;
-                }
+            // Add a direct call to the API service to find citations
+            const masterResumeValue = masterResumeTextarea.value;
+            const jobTitleInput = document.getElementById('jobTitle');
+            const companyNameInput = document.getElementById('companyName');
+            const industryInput = document.getElementById('industry');
+            
+            const jobTitleValue = jobTitleInput ? jobTitleInput.value.trim() : '';
+            const companyNameValue = companyNameInput ? companyNameInput.value.trim() : '';
+            const industryValue = industryInput ? industryInput.value.trim() : '';
+            
+            console.log('Calling ApiService.findCitations directly');
+            
+            // Call the API service directly
+            ApiService.findCitations(
+                masterResumeValue,
+                window.keywordsData || window.extractedKeywords,
+                jobTitleValue,
+                companyNameValue,
+                industryValue
+            )
+            .then(data => {
+                console.log('ApiService.findCitations response:', data);
                 
-                // Show success message but DO NOT move to the next step
-                showSuccessMessage('Citations generated successfully! Check the Citations Panel.');
-                
-                // Make sure the citations panel is visible
-                const citationsPanel = document.getElementById('citationsPanel');
-                if (citationsPanel && citationsPanel.classList.contains('hidden')) {
-                    citationsPanel.classList.remove('hidden');
+                if (data.success) {
+                    // Add citations to the citations panel
+                    if (data.citations && typeof window.addCitationsToPanel === 'function') {
+                        console.log('Adding citations to panel');
+                        window.addCitationsToPanel('keywords', data.citations);
+                        
+                        // Store citations data globally
+                        if (!window.citationsData) {
+                            window.citationsData = {};
+                        }
+                        window.citationsData.keywords = data.citations;
+                        
+                        // Create a foundKeywords object based on the citations
+                        const foundKeywords = {};
+                        
+                        // Process each priority level in the citations
+                        const processCitations = (priorityData) => {
+                            for (const keyword in priorityData) {
+                                // If there's a citation for this keyword, mark it as found
+                                foundKeywords[keyword] = true;
+                            }
+                        };
+                        
+                        // Process each priority level
+                        if (data.citations.high_priority) processCitations(data.citations.high_priority);
+                        if (data.citations.medium_priority) processCitations(data.citations.medium_priority);
+                        if (data.citations.low_priority) processCitations(data.citations.low_priority);
+                        if (data.citations.fallback_extraction) processCitations(data.citations.fallback_extraction);
+                        
+                        console.log('Created foundKeywords object from citations:', foundKeywords);
+                        
+                        // Update the keywords display with found/not found indicators based on citations
+                        if (window.KeywordManager && typeof window.KeywordManager.updateKeywordsWithFoundStatus === 'function') {
+                            console.log('Updating keywords with found status based on citations');
+                            window.KeywordManager.updateKeywordsWithFoundStatus(foundKeywords);
+                        }
+                        
+                        // Highlight the keywords in the master resume
+                        if (window.KeywordManager && typeof window.KeywordManager.highlightKeywordsInResume === 'function') {
+                            console.log('Highlighting keywords in resume based on citations');
+                            window.KeywordManager.highlightKeywordsInResume(masterResumeValue, foundKeywords);
+                        }
+                        
+                        // Reset button state
+                        const updatedBtn = document.getElementById('guideGenerateCitationsBtn');
+                        if (updatedBtn) {
+                            console.log('Citations generated successfully, resetting button state');
+                            updatedBtn.disabled = false;
+                            updatedBtn.classList.remove('opacity-75');
+                            updatedBtn.innerHTML = `Generate Citations for Keywords`;
+                        }
+                        
+                        // Show success message
+                        showSuccessMessage('Citations generated successfully! Check the Citations Panel.');
+                        
+                        // Make sure the citations panel is visible
+                        const citationsPanel = document.getElementById('citationsPanel');
+                        if (citationsPanel) {
+                            citationsPanel.classList.remove('hidden');
+                        }
+                    } else {
+                        console.error('No citations found or addCitationsToPanel function not available');
+                        showAlert('No citations found in your resume.');
+                        
+                        // Reset button state
+                        const errorBtn = document.getElementById('guideGenerateCitationsBtn');
+                        if (errorBtn) {
+                            errorBtn.disabled = false;
+                            errorBtn.classList.remove('opacity-75');
+                            errorBtn.innerHTML = `Generate Citations for Keywords`;
+                        }
+                    }
+                } else {
+                    console.error('Error finding citations:', data.message);
+                    showAlert(data.message || 'Error finding citations');
+                    
+                    // Reset button state
+                    const errorBtn = document.getElementById('guideGenerateCitationsBtn');
+                    if (errorBtn) {
+                        errorBtn.disabled = false;
+                        errorBtn.classList.remove('opacity-75');
+                        errorBtn.innerHTML = `Generate Citations for Keywords`;
+                    }
                 }
-            }, 5000); // Add a buffer of 5 seconds
+            })
+            .catch(error => {
+                console.error('Error calling ApiService.findCitations:', error);
+                showAlert('An error occurred while finding citations. Please try again.');
+                
+                // Reset button state
+                const errorBtn = document.getElementById('guideGenerateCitationsBtn');
+                if (errorBtn) {
+                    errorBtn.disabled = false;
+                    errorBtn.classList.remove('opacity-75');
+                    errorBtn.innerHTML = `Generate Citations for Keywords`;
+                }
+            });
         } catch (error) {
             console.error('Error generating citations:', error);
             
@@ -429,11 +650,16 @@ function handleGenerateCompetencies() {
             careerProfileSection.classList.add('hidden');
             coreCompetenciesSection.classList.remove('hidden');
         } else {
-            // Fallback to clicking the buttons
-            document.getElementById('continueToProfileBtn').click();
-            setTimeout(() => {
-                document.getElementById('nextBtn').click();
-            }, 300);
+            // Navigate directly to the sections without using buttons
+            const keywordsSection = document.getElementById('keywordsSection');
+            const careerProfileSection = document.getElementById('careerProfileSection');
+            const coreCompetenciesSection = document.getElementById('coreCompetenciesSection');
+            
+            if (keywordsSection && careerProfileSection && coreCompetenciesSection) {
+                keywordsSection.classList.add('hidden');
+                careerProfileSection.classList.add('hidden');
+                coreCompetenciesSection.classList.remove('hidden');
+            }
         }
     }
     
@@ -482,6 +708,7 @@ function handleSaveCitations() {
 
 // Activate a specific step in the guide
 function activateStep(stepNumber) {
+    console.log(`Activating step ${stepNumber}`);
     // Update the current step
     currentStep = stepNumber;
     
@@ -530,8 +757,44 @@ function activateStep(stepNumber) {
             // Enable all buttons and inputs in this step
             const buttons = stepElement.querySelectorAll('button');
             buttons.forEach(button => {
+                console.log(`Enabling button: ${button.id || 'unnamed button'}`);
                 button.disabled = false;
                 button.classList.remove('opacity-50');
+                
+                // Special handling for the Generate Citations button
+                if (button.id === 'guideGenerateCitationsBtn') {
+                    console.log('Found and enabled the Generate Citations button in activateStep');
+                    
+                    // Replace the button completely
+                    const newBtn = document.createElement('button');
+                    newBtn.id = 'guideGenerateCitationsBtn';
+                    newBtn.className = 'w-full px-3 py-2 rounded text-sm';
+                    newBtn.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+                    newBtn.style.color = '#2ECC71';
+                    newBtn.style.border = '1px solid rgba(46, 204, 113, 0.2)';
+                    newBtn.disabled = false;
+                    newBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="#2ECC71">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate Citations for Keywords
+                    `;
+                    
+                    // Add multiple event listeners to ensure it works
+                    newBtn.addEventListener('click', function(e) {
+                        console.log('Generate Citations button clicked via activateStep handler!');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleGenerateCitations();
+                    });
+                    
+                    // Also add an inline onclick attribute as a fallback
+                    newBtn.setAttribute('onclick', 'handleGenerateCitations(); return false;');
+                    
+                    // Replace the old button
+                    button.parentNode.replaceChild(newBtn, button);
+                    console.log('Generate Citations button replaced in activateStep');
+                }
             });
             
             const inputs = stepElement.querySelectorAll('input, select');

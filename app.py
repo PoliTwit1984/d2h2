@@ -355,13 +355,25 @@ def find_keywords_in_resume():
             # Extract keywords from the keywords_data structure
             if isinstance(keywords_data, dict):
                 # If it's the enhanced structure with priority categories
-                for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                    if priority in keywords_data:
-                        for item in keywords_data[priority]:
-                            if isinstance(item, dict) and 'keyword' in item:
-                                keywords.append(item['keyword'])
-                            elif isinstance(item, str):
-                                keywords.append(item)
+                # First check if it has the nested 'keywords' structure
+                if 'keywords' in keywords_data and isinstance(keywords_data['keywords'], dict):
+                    # Handle the nested structure
+                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                        if priority in keywords_data['keywords']:
+                            for item in keywords_data['keywords'][priority]:
+                                if isinstance(item, dict) and 'keyword' in item:
+                                    keywords.append(item['keyword'])
+                                elif isinstance(item, str):
+                                    keywords.append(item)
+                else:
+                    # Handle the flat structure
+                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                        if priority in keywords_data:
+                            for item in keywords_data[priority]:
+                                if isinstance(item, dict) and 'keyword' in item:
+                                    keywords.append(item['keyword'])
+                                elif isinstance(item, str):
+                                    keywords.append(item)
             elif isinstance(keywords_data, list):
                 # If it's a simple list of keywords
                 keywords = keywords_data
@@ -414,13 +426,25 @@ def find_citations():
             # Extract keywords from the keywords_data structure
             if isinstance(keywords_data, dict):
                 # If it's the enhanced structure with priority categories
-                for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                    if priority in keywords_data:
-                        for item in keywords_data[priority]:
-                            if isinstance(item, dict) and 'keyword' in item:
-                                keywords.append(item['keyword'])
-                            elif isinstance(item, str):
-                                keywords.append(item)
+                # First check if it has the nested 'keywords' structure
+                if 'keywords' in keywords_data and isinstance(keywords_data['keywords'], dict):
+                    # Handle the nested structure
+                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                        if priority in keywords_data['keywords']:
+                            for item in keywords_data['keywords'][priority]:
+                                if isinstance(item, dict) and 'keyword' in item:
+                                    keywords.append(item['keyword'])
+                                elif isinstance(item, str):
+                                    keywords.append(item)
+                else:
+                    # Handle the flat structure
+                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                        if priority in keywords_data:
+                            for item in keywords_data[priority]:
+                                if isinstance(item, dict) and 'keyword' in item:
+                                    keywords.append(item['keyword'])
+                                elif isinstance(item, str):
+                                    keywords.append(item)
             elif isinstance(keywords_data, list):
                 # If it's a simple list of keywords
                 keywords = keywords_data
