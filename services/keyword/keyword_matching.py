@@ -278,12 +278,15 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
            
            KEYWORD: [exact keyword text]
            CITATION: [brief excerpt from resume that provides evidence]
+           EXACT_PHRASE: [the exact phrase or words in the resume that most closely match the keyword]
            
            Only include keywords that have clear supporting evidence in the resume. DO NOT force matches that aren't genuinely there.
         
         8. Be especially careful with technical or domain-specific terms (like "Audiovisual Content" or "Generative Media") - only include these if there is explicit evidence in the resume.
         
         9. IMPORTANT: Keep each citation brief (1-2 sentences maximum) to avoid exceeding token limits.
+        
+        10. For the EXACT_PHRASE field, provide the specific words or phrase from the resume that most closely match the keyword semantically. This should be a short phrase (2-5 words) that can be highlighted in the resume. If the keyword appears verbatim in the resume, use that exact occurrence.
         
         Keywords:
         {', '.join(sanitized_keywords)}
@@ -318,6 +321,7 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
             # Parse the response text
             current_keyword = None
             current_citation = None
+            current_exact_phrase = None
             
             # Split the response into lines and process each line
             lines = response_text.split('\n')
@@ -328,21 +332,28 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
                 if not line:
                     # If we have a complete keyword-citation pair, add it to the appropriate bucket
                     if current_keyword and current_citation:
+                        # Create a citation object with citation text and exact phrase
+                        citation_obj = {
+                            "citation": current_citation,
+                            "exact_phrase": current_exact_phrase or current_keyword  # Default to keyword if no exact phrase
+                        }
+                        
                         # Determine which priority bucket this keyword belongs to
                         placed = False
                         for priority, keywords_list in priority_keywords.items():
                             if current_keyword in keywords_list:
-                                organized_citations[priority][current_keyword] = current_citation
+                                organized_citations[priority][current_keyword] = citation_obj
                                 placed = True
                                 break
                         
                         if not placed:
                             # If we couldn't determine the priority, put it in fallback
-                            organized_citations["fallback_extraction"][current_keyword] = current_citation
+                            organized_citations["fallback_extraction"][current_keyword] = citation_obj
                         
                         # Reset for the next keyword-citation pair
                         current_keyword = None
                         current_citation = None
+                        current_exact_phrase = None
                     
                     continue
                 
@@ -354,21 +365,28 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
                         current_keyword = line[8:].strip()
                     # If we have a complete pair, store it and start a new one
                     elif current_keyword and current_citation:
+                        # Create a citation object with citation text and exact phrase
+                        citation_obj = {
+                            "citation": current_citation,
+                            "exact_phrase": current_exact_phrase or current_keyword  # Default to keyword if no exact phrase
+                        }
+                        
                         # Determine which priority bucket this keyword belongs to
                         placed = False
                         for priority, keywords_list in priority_keywords.items():
                             if current_keyword in keywords_list:
-                                organized_citations[priority][current_keyword] = current_citation
+                                organized_citations[priority][current_keyword] = citation_obj
                                 placed = True
                                 break
                         
                         if not placed:
                             # If we couldn't determine the priority, put it in fallback
-                            organized_citations["fallback_extraction"][current_keyword] = current_citation
+                            organized_citations["fallback_extraction"][current_keyword] = citation_obj
                         
                         # Start a new keyword
                         current_keyword = line[8:].strip()
                         current_citation = None
+                        current_exact_phrase = None
                     else:
                         # This is the first keyword
                         current_keyword = line[8:].strip()
@@ -377,8 +395,12 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
                 elif line.startswith("CITATION:"):
                     if current_keyword:
                         current_citation = line[9:].strip()
-                # If it's not a keyword or citation line, it might be a continuation of the citation
-                elif current_keyword and current_citation:
+                # Check for exact phrase line
+                elif line.startswith("EXACT_PHRASE:"):
+                    if current_keyword:
+                        current_exact_phrase = line[13:].strip()
+                # If it's not a keyword, citation, or exact phrase line, it might be a continuation of the citation
+                elif current_keyword and current_citation and not line.startswith("EXACT_PHRASE:"):
                     current_citation += " " + line
             
             # Don't forget to process the last keyword-citation pair if it exists
@@ -402,7 +424,15 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
                 if organized_citations[priority]:
                     sample_keys = list(organized_citations[priority].keys())[:1]  # Get up to 1 key
                     for key in sample_keys:
-                        log_debug(f"Sample citation - '{priority}': '{organized_citations[priority][key][:50]}...'")
+                        citation_value = organized_citations[priority][key]
+                        # Check if citation is a string or an object
+                        if isinstance(citation_value, str):
+                            sample_text = citation_value[:50]
+                        elif isinstance(citation_value, dict) and "citation" in citation_value:
+                            sample_text = citation_value["citation"][:50]
+                        else:
+                            sample_text = str(citation_value)[:50]
+                        log_debug(f"Sample citation - '{priority}': '{sample_text}...'")
             
             return organized_citations
             

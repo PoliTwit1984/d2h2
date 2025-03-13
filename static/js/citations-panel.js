@@ -68,6 +68,9 @@ function addCitationsToPanel(section, citations) {
             { key: 'fallback_extraction', label: 'Additional Citations', color: 'text-blue-700' }
         ];
         
+        // Keep track of citation number
+        let citationNumber = 1;
+        
         // Add each priority section
         for (const priority of priorities) {
             const priorityCitations = citations[priority.key];
@@ -94,42 +97,88 @@ function addCitationsToPanel(section, citations) {
                 
                 const citationDiv = document.createElement('div');
                 citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                citationDiv.dataset.citationNumber = citationNumber;
                 
                 const keywordHeader = document.createElement('h4');
                 keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
-                keywordHeader.textContent = keyword;
+                keywordHeader.innerHTML = `<span class="citation-number">${citationNumber}</span>. ${keyword}`;
                 citationDiv.appendChild(keywordHeader);
                 
-                const citationText = document.createElement('p');
-                citationText.className = 'text-xs text-gray-700';
-                citationText.textContent = citation;
-                citationDiv.appendChild(citationText);
+                // Handle both string and object citation formats
+                let citationText;
+                if (typeof citation === 'string') {
+                    citationText = citation;
+                } else if (typeof citation === 'object' && citation.citation) {
+                    citationText = citation.citation;
+                } else {
+                    citationText = 'No citation available';
+                }
+                
+                const citationParagraph = document.createElement('p');
+                citationParagraph.className = 'text-xs text-gray-700';
+                citationParagraph.textContent = citationText;
+                citationDiv.appendChild(citationParagraph);
+                
+                // If there's an exact phrase, display it
+                if (typeof citation === 'object' && citation.exact_phrase) {
+                    const exactPhraseDiv = document.createElement('div');
+                    exactPhraseDiv.className = 'mt-1 text-xs';
+                    exactPhraseDiv.innerHTML = `<span class="font-semibold">Exact phrase:</span> <span class="${priority.color.replace('text-', 'bg-').replace('700', '100')} px-1 py-0.5 rounded">${citation.exact_phrase}</span>`;
+                    citationDiv.appendChild(exactPhraseDiv);
+                }
                 
                 priorityDiv.appendChild(citationDiv);
+                
+                // Increment citation number for the next citation
+                citationNumber++;
             }
             
             sectionDiv.appendChild(priorityDiv);
         }
     } else {
         // Handle the old flat format for backward compatibility
+        let citationNumber = 1;
+        
         for (const [keyword, citation] of Object.entries(citations)) {
             // Skip if citation is not a string (e.g., it's an object or array)
-            if (typeof citation !== 'string') continue;
+            if (typeof citation !== 'string' && (typeof citation !== 'object' || !citation.citation)) continue;
             
             const citationDiv = document.createElement('div');
             citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+            citationDiv.dataset.citationNumber = citationNumber;
             
             const keywordHeader = document.createElement('h4');
             keywordHeader.className = 'text-sm font-semibold mb-1 text-blue-700';
-            keywordHeader.textContent = keyword;
+            keywordHeader.innerHTML = `<span class="citation-number">${citationNumber}</span>. ${keyword}`;
             citationDiv.appendChild(keywordHeader);
             
-            const citationText = document.createElement('p');
-            citationText.className = 'text-xs text-gray-700';
-            citationText.textContent = citation;
-            citationDiv.appendChild(citationText);
+            // Handle both string and object citation formats
+            let citationText;
+            if (typeof citation === 'string') {
+                citationText = citation;
+            } else if (typeof citation === 'object' && citation.citation) {
+                citationText = citation.citation;
+            } else {
+                citationText = 'No citation available';
+            }
+            
+            const citationParagraph = document.createElement('p');
+            citationParagraph.className = 'text-xs text-gray-700';
+            citationParagraph.textContent = citationText;
+            citationDiv.appendChild(citationParagraph);
+            
+            // If there's an exact phrase, display it
+            if (typeof citation === 'object' && citation.exact_phrase) {
+                const exactPhraseDiv = document.createElement('div');
+                exactPhraseDiv.className = 'mt-1 text-xs';
+                exactPhraseDiv.innerHTML = `<span class="font-semibold">Exact phrase:</span> <span class="bg-blue-100 px-1 py-0.5 rounded">${citation.exact_phrase}</span>`;
+                citationDiv.appendChild(exactPhraseDiv);
+            }
             
             sectionDiv.appendChild(citationDiv);
+            
+            // Increment citation number for the next citation
+            citationNumber++;
         }
     }
     
@@ -160,6 +209,23 @@ function addCitationsToPanel(section, citations) {
             citationsContent.appendChild(sectionDiv);
         }
     }
+    
+    // Add CSS for citation numbers
+    const style = document.createElement('style');
+    style.textContent = `
+        .citation-number {
+            display: inline-block;
+            min-width: 1.5em;
+            height: 1.5em;
+            line-height: 1.5em;
+            text-align: center;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            font-size: 0.8em;
+            margin-right: 0.5em;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Save citations for interview prep

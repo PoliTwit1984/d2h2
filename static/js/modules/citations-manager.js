@@ -133,24 +133,30 @@ const CitationsManager = {
                     // Skip error messages
                     if (keyword === 'error') continue;
                     
-                    // Skip if citation is not a string
-                    if (typeof citation !== 'string') {
-                        console.warn(`Citation for "${keyword}" is not a string:`, citation);
+                    // Extract citation text based on format
+                    let citationText = '';
+                    if (typeof citation === 'string') {
+                        citationText = citation;
+                    } else if (typeof citation === 'object' && citation.citation) {
+                        citationText = citation.citation;
+                    } else {
+                        console.warn(`Citation for "${keyword}" is not in a recognized format:`, citation);
                         continue;
                     }
                     
                     const citationDiv = document.createElement('div');
                     citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
                     
+                    // Create the keyword header
                     const keywordHeader = document.createElement('h4');
                     keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
                     keywordHeader.textContent = keyword;
                     citationDiv.appendChild(keywordHeader);
                     
-                    const citationText = document.createElement('p');
-                    citationText.className = 'text-xs text-gray-700';
-                    citationText.textContent = citation;
-                    citationDiv.appendChild(citationText);
+                    const citationParagraph = document.createElement('p');
+                    citationParagraph.className = 'text-xs text-gray-700';
+                    citationParagraph.textContent = citationText;
+                    citationDiv.appendChild(citationParagraph);
                     
                     priorityDiv.appendChild(citationDiv);
                     totalCitations++;
@@ -285,10 +291,17 @@ const CitationsManager = {
                         // Skip error messages
                         if (keyword === 'error') continue;
                         
-                        // Skip if citation is not a string
-                        if (typeof citation !== 'string') continue;
+                        // Extract citation text based on format
+                        let citationText = '';
+                        if (typeof citation === 'string') {
+                            citationText = citation;
+                        } else if (typeof citation === 'object' && citation.citation) {
+                            citationText = citation.citation;
+                        } else {
+                            continue;
+                        }
                         
-                        citationsText += `#### ${keyword}\n${citation}\n\n`;
+                        citationsText += `#### ${keyword}\n${citationText}\n\n`;
                     }
                 }
             } else {

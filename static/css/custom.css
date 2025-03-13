@@ -139,6 +139,7 @@ mark.high-priority-keyword {
     color: var(--d2h-red);
     font-weight: 600;
     border-bottom: 1px solid var(--d2h-red);
+    position: relative;
 }
 
 mark.high-priority-keyword:hover {
@@ -150,6 +151,7 @@ mark.medium-priority-keyword {
     color: var(--d2h-orange);
     font-weight: 500;
     border-bottom: 1px solid var(--d2h-orange);
+    position: relative;
 }
 
 mark.medium-priority-keyword:hover {
@@ -161,10 +163,49 @@ mark.low-priority-keyword {
     color: var(--d2h-yellow);
     font-weight: 500;
     border-bottom: 1px solid var(--d2h-yellow);
+    position: relative;
 }
 
 mark.low-priority-keyword:hover {
     background-color: rgba(241, 196, 15, 0.2);
+}
+
+/* Citation number styling */
+mark sup {
+    font-size: 0.7em;
+    font-weight: bold;
+    vertical-align: super;
+    margin-left: 2px;
+    color: inherit;
+}
+
+/* Citation number in citations panel */
+.citation-number {
+    display: inline-block;
+    min-width: 1.5em;
+    height: 1.5em;
+    line-height: 1.5em;
+    text-align: center;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    font-size: 0.8em;
+    margin-right: 0.5em;
+    font-weight: bold;
+}
+
+/* High priority citation number */
+mark.high-priority-keyword sup {
+    color: var(--d2h-red);
+}
+
+/* Medium priority citation number */
+mark.medium-priority-keyword sup {
+    color: var(--d2h-orange);
+}
+
+/* Low priority citation number */
+mark.low-priority-keyword sup {
+    color: var(--d2h-yellow);
 }
 
 /* Highlighted job description container */

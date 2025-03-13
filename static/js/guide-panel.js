@@ -127,10 +127,10 @@ setTimeout(() => {
     // Listen for changes in the main application state
     listenForApplicationChanges();
     
-    // Update the button text to "Find Keywords in Resume"
+    // Update the button text to "Generate Citations"
     const continueBtn = document.getElementById('guideContinueBtn');
     if (continueBtn) {
-        continueBtn.textContent = 'Find Keywords in Resume';
+        continueBtn.textContent = 'Generate Citations';
     }
 }
 
@@ -174,10 +174,8 @@ function handleAddKeyword() {
 
 // Handle Continue to Generation button click
 function handleContinueToGeneration() {
-    // First, find keywords in resume
-    findKeywordsInResume();
-    // Note: We no longer automatically generate citations
-    // This allows the user to click the Generate Citations button in step 3
+    // Skip finding keywords in resume and go directly to generating citations
+    handleGenerateCitations();
 }
 
 // Find keywords in resume

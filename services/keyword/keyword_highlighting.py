@@ -8,7 +8,7 @@ import re
 from services.openai_service import get_text_response
 from services.keyword.keyword_utils import log_debug, extract_keywords_regex
 
-def highlight_keywords_in_resume(resume_text, found_keywords, keywords_data=None):
+def highlight_keywords_in_resume(resume_text, found_keywords, keywords_data=None, citations=None):
     """
     Highlight keywords in the resume text based on their priority.
     
@@ -16,6 +16,7 @@ def highlight_keywords_in_resume(resume_text, found_keywords, keywords_data=None
         resume_text (str): The resume text to highlight
         found_keywords (dict): Dictionary mapping keywords to boolean (found or not)
         keywords_data (dict, optional): Keywords data structure with priority information
+        citations (dict, optional): Citations data with exact phrases to highlight
         
     Returns:
         str: The resume text with keywords highlighted using HTML mark tags with priority-based classes
@@ -52,6 +53,87 @@ def highlight_keywords_in_resume(resume_text, found_keywords, keywords_data=None
                         elif isinstance(item, str):
                             keyword_priority_map[item] = priority.split("_")[0]
     
+    # If we have citations data with exact phrases, use that for highlighting
+    if citations:
+        # Create a list to store all phrases to highlight with their priority and citation number
+        phrases_to_highlight = []
+        citation_number = 1
+        
+        # Process each priority level in the citations
+        for priority_level in ["high_priority", "medium_priority", "low_priority", "fallback_extraction"]:
+            if priority_level in citations:
+                for keyword, citation_data in citations[priority_level].items():
+                    # Skip error messages
+                    if keyword == "error":
+                        continue
+                    
+                    # Extract the exact phrase if available
+                    exact_phrase = None
+                    
+                    # Check if citation_data is a string or a dictionary
+                    if isinstance(citation_data, str):
+                        # Old format - just use the keyword itself
+                        exact_phrase = keyword
+                    elif isinstance(citation_data, dict) and "exact_phrase" in citation_data:
+                        # New format with exact phrase
+                        exact_phrase = citation_data["exact_phrase"]
+                    
+                    # If we have an exact phrase, add it to the list
+                    if exact_phrase:
+                        # Determine the priority
+                        priority = "medium"  # Default priority
+                        if keyword in keyword_priority_map:
+                            priority = keyword_priority_map[keyword]
+                        elif priority_level.startswith("high"):
+                            priority = "high"
+                        elif priority_level.startswith("medium"):
+                            priority = "medium"
+                        elif priority_level.startswith("low"):
+                            priority = "low"
+                        
+                        phrases_to_highlight.append({
+                            "phrase": exact_phrase,
+                            "priority": priority,
+                            "citation_number": citation_number,
+                            "keyword": keyword
+                        })
+                        
+                        # Increment the citation number for the next keyword
+                        citation_number += 1
+        
+        # Sort phrases by length (longest first) to ensure we match the most specific phrases first
+        phrases_to_highlight.sort(key=lambda x: len(x["phrase"]), reverse=True)
+        
+        # Highlight each phrase
+        for phrase_data in phrases_to_highlight:
+            phrase = phrase_data["phrase"]
+            priority = phrase_data["priority"]
+            citation_number = phrase_data["citation_number"]
+            
+            # Define the CSS class based on priority
+            css_class = ""
+            if priority == "high":
+                css_class = "high-priority-keyword"
+            elif priority == "medium":
+                css_class = "medium-priority-keyword"
+            elif priority == "low":
+                css_class = "low-priority-keyword"
+            
+            # Escape the phrase for regex
+            escaped_phrase = re.escape(phrase)
+            
+            # Use word boundaries to match whole words only, with case insensitivity
+            pattern = re.compile(r'\b' + escaped_phrase + r'\b', re.IGNORECASE)
+            
+            # Replace with marked version including the priority class and citation number
+            replacement = f'<mark class="{css_class}" data-citation="{citation_number}">{phrase}<sup>{citation_number}</sup></mark>'
+            highlighted_text = pattern.sub(replacement, highlighted_text)
+        
+        log_debug(f"Highlighted {len(phrases_to_highlight)} phrases with citation numbers in resume")
+        
+        return highlighted_text
+    
+    # If we don't have citations data, fall back to the original method
     # Count how many keywords were actually found
     found_count = 0
     

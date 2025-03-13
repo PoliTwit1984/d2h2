@@ -347,6 +347,7 @@ def find_keywords_in_resume():
     
     # Parse keywords if provided
     keywords = []
+    keywords_data = None
     if keywords_json:
         try:
             import json
@@ -388,15 +389,34 @@ def find_keywords_in_resume():
         }), 400
     
     try:
-        # Find keywords in the resume
-        from services.keyword_service import find_keywords_in_resume as find_kw
-        found_keywords, highlighted_resume = find_kw(keywords, master_resume, job_title, company_name, industry)
+        # Skip the exact keyword matching step and go directly to semantic search
+        # Find citations for the keywords
+        from services.keyword_service import find_keyword_citations
+        citations = find_keyword_citations(keywords, master_resume, job_title, company_name, industry)
+        
+        # Create a dictionary of found keywords based on the citations
+        found_keywords = {}
+        for priority_level in ["high_priority", "medium_priority", "low_priority", "fallback_extraction"]:
+            if priority_level in citations:
+                for keyword in citations[priority_level]:
+                    if keyword != "error":  # Skip error messages
+                        found_keywords[keyword] = True
+        
+        # For any keywords not found in citations, mark them as not found
+        for keyword in keywords:
+            if keyword not in found_keywords:
+                found_keywords[keyword] = False
+        
+        # Highlight the keywords in the resume using the citations
+        from services.keyword.keyword_highlighting import highlight_keywords_in_resume
+        highlighted_resume = highlight_keywords_in_resume(master_resume, found_keywords, keywords_data, citations)
         
         return jsonify({
             'success': True,
             'message': 'Keywords found successfully!',
             'found_keywords': found_keywords,
-            'highlighted_resume': highlighted_resume
+            'highlighted_resume': highlighted_resume,
+            'citations': citations  # Include citations in the response
         })
     
     except Exception as e:

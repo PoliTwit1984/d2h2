@@ -628,7 +628,7 @@ const KeywordManager = {
      * @param {boolean} foundInResume - Whether this keyword was found in the resume
      * @returns {HTMLElement} - The keyword element
      */
-    createKeywordElement: function(keyword, priority, score, isMissing = false, userAdded = false, foundInResume = null) {
+    createKeywordElement: function(keyword, priority, score, isMissing = false, userAdded = false, foundInResume = null, hasCitation = false) {
         const element = document.createElement('div');
         
         // Set base classes
@@ -658,19 +658,34 @@ const KeywordManager = {
         const textContainer = document.createElement('div');
         textContainer.className = 'flex items-center gap-1';
         
-        // Add found/not found indicator if we have that information
-        if (foundInResume !== null) {
-            const indicator = document.createElement('span');
-            if (foundInResume) {
-                indicator.innerHTML = '✓';
-                indicator.className = 'text-green-600 font-bold';
-                indicator.title = 'Found in resume';
-            } else {
-                indicator.innerHTML = '✗';
-                indicator.className = 'text-red-600 font-bold';
-                indicator.title = 'Not found in resume';
+        // Only add citation indicators if citations have been generated
+        if (window.citationsData && window.citationsData.keywords) {
+            // Check if this keyword has a citation in any priority bucket
+            let hasCitation = false;
+            const citations = window.citationsData.keywords;
+            
+            if (citations.high_priority && citations.high_priority[keyword]) {
+                hasCitation = true;
+            } else if (citations.medium_priority && citations.medium_priority[keyword]) {
+                hasCitation = true;
+            } else if (citations.low_priority && citations.low_priority[keyword]) {
+                hasCitation = true;
+            } else if (citations.fallback_extraction && citations.fallback_extraction[keyword]) {
+                hasCitation = true;
             }
-            textContainer.appendChild(indicator);
+            
+            // Add the appropriate indicator
+            const citationIndicator = document.createElement('span');
+            if (hasCitation) {
+                citationIndicator.innerHTML = '✓';
+                citationIndicator.className = 'text-green-600 font-bold';
+                citationIndicator.title = 'Citation found in resume';
+            } else {
+                citationIndicator.innerHTML = '✗';
+                citationIndicator.className = 'text-red-600 font-bold';
+                citationIndicator.title = 'No citation found in resume';
+            }
+            textContainer.appendChild(citationIndicator);
         }
         
         // Create the keyword text
@@ -784,6 +799,23 @@ const KeywordManager = {
             // Check if the keyword is found in the foundKeywords and its value is true
             const isFound = foundKeywords[keywordText] === true;
             
+            // Check if the keyword has a citation in the citations panel
+            let hasCitation = false;
+            if (window.citationsData && window.citationsData.keywords) {
+                const citations = window.citationsData.keywords;
+                
+                // Check in each priority bucket
+                if (citations.high_priority && citations.high_priority[keywordText]) {
+                    hasCitation = true;
+                } else if (citations.medium_priority && citations.medium_priority[keywordText]) {
+                    hasCitation = true;
+                } else if (citations.low_priority && citations.low_priority[keywordText]) {
+                    hasCitation = true;
+                } else if (citations.fallback_extraction && citations.fallback_extraction[keywordText]) {
+                    hasCitation = true;
+                }
+            }
+            
             // Recreate the element with found/not found indicator
             const priority = element.classList.contains('bg-red-100') ? 'high' : 
                             element.classList.contains('bg-orange-100') ? 'medium' : 'low';
@@ -794,8 +826,8 @@ const KeywordManager = {
             const isMissing = element.querySelector('span.bg-red-200.text-red-800') !== null;
             const userAdded = element.querySelector('span.bg-blue-200.text-blue-800') !== null;
             
-            // Create a new element with the found/not found indicator
-            const newElement = this.createKeywordElement(keywordText, priority, scoreValue, isMissing, userAdded, isFound);
+            // Create a new element with the found/not found indicator and citation indicator
+            const newElement = this.createKeywordElement(keywordText, priority, scoreValue, isMissing, userAdded, isFound, hasCitation);
             
             // Replace the old element with the new one
             element.replaceWith(newElement);
@@ -920,8 +952,9 @@ const KeywordManager = {
                 }
             }
             
-            // Don't hide the textarea - we'll keep it visible and let the toggle button handle visibility
-            // masterResumeTextarea.style.display = 'none';
+            // Hide the textarea and show the highlighted view by default
+            masterResumeTextarea.style.display = 'none';
+            highlightedResumeSection.style.display = 'block';
         }
         
         // Get the content container
@@ -971,10 +1004,62 @@ const KeywordManager = {
         // Replace newlines with <br> tags
         highlightedText = highlightedText.replace(/\n/g, '<br>');
         
-        // Highlight each keyword found in the citations
-        for (const [keyword, citation] of Object.entries(citations)) {
-            // Get the priority for this keyword
-            const priority = keywordPriorityMap[keyword] || 'medium';
+        // Keep track of citation number
+        let citationNumber = 1;
+        
+        // Create an array of keywords and their exact phrases to highlight
+        const phrasesToHighlight = [];
+        
+        // Process each priority level in the citations
+        const processCitations = (priorityData, priority) => {
+            for (const [keyword, citation] of Object.entries(priorityData)) {
+                // Skip error messages
+                if (keyword === 'error') continue;
+                
+                // Extract the exact phrase if available
+                let exactPhrase = null;
+                
+                // Check if citation is a string or an object
+                if (typeof citation === 'string') {
+                    // Old format - just use the keyword itself
+                    exactPhrase = keyword;
+                } else if (typeof citation === 'object' && citation.exact_phrase) {
+                    // New format with exact phrase
+                    exactPhrase = citation.exact_phrase;
+                } else if (typeof citation === 'object' && citation.citation) {
+                    // New format but no exact phrase - use keyword
+                    exactPhrase = keyword;
+                }
+                
+                // If we have an exact phrase, add it to the list
+                if (exactPhrase) {
+                    phrasesToHighlight.push({
+                        phrase: exactPhrase,
+                        priority: priority || keywordPriorityMap[keyword] || 'medium',
+                        citationNumber: citationNumber,
+                        keyword: keyword
+                    });
+                    
+                    // Increment the citation number for the next keyword
+                    citationNumber++;
+                }
+            }
+        };
+        
+        // Process each priority level
+        if (citations.high_priority) processCitations(citations.high_priority, 'high');
+        if (citations.medium_priority) processCitations(citations.medium_priority, 'medium');
+        if (citations.low_priority) processCitations(citations.low_priority, 'low');
+        if (citations.fallback_extraction) processCitations(citations.fallback_extraction);
+        
+        // Sort phrases by length (longest first) to ensure we match the most specific phrases first
+        phrasesToHighlight.sort((a, b) => b.phrase.length - a.phrase.length);
+        
+        // Highlight each phrase
+        for (const phraseData of phrasesToHighlight) {
+            const phrase = phraseData.phrase;
+            const priority = phraseData.priority;
+            const citationNumber = phraseData.citationNumber;
             
             // Define the CSS class based on priority
             let cssClass = '';
@@ -992,11 +1077,14 @@ const KeywordManager = {
                     cssClass = 'medium-priority-keyword';
             }
             
-            // Create a regex to find the keyword with word boundaries
-            const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+            // Escape special characters in the phrase for regex
+            const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             
-            // Replace the keyword with a marked version
-            highlightedText = highlightedText.replace(regex, `<mark class="${cssClass}">${keyword}</mark>`);
+            // Create a regex to find the phrase with word boundaries
+            const regex = new RegExp(`\\b${escapedPhrase}\\b`, 'gi');
+            
+            // Replace the phrase with a marked version including the citation number
+            highlightedText = highlightedText.replace(regex, `<mark class="${cssClass}" data-citation="${citationNumber}">${phrase}<sup>${citationNumber}</sup></mark>`);
         }
         
         // Update the container with the highlighted text
@@ -1186,12 +1274,26 @@ const KeywordManager = {
         
         // Show loading state
         const findCitationsBtn = document.getElementById('findCitationsBtn');
-        findCitationsBtn.disabled = true;
-        findCitationsBtn.classList.add('opacity-75');
-        findCitationsBtn.innerHTML = `
-            <div class="spinner" style="width: 1rem; height: 1rem;"></div>
-            <span>Finding Citations...</span>
-        `;
+        const guideFindCitationsBtn = document.getElementById('guideFindCitationsBtn');
+        
+        // Update the button that was clicked (either the main one or the guide one)
+        if (findCitationsBtn) {
+            findCitationsBtn.disabled = true;
+            findCitationsBtn.classList.add('opacity-75');
+            findCitationsBtn.innerHTML = `
+                <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                <span>Finding Citations...</span>
+            `;
+        }
+        
+        if (guideFindCitationsBtn) {
+            guideFindCitationsBtn.disabled = true;
+            guideFindCitationsBtn.classList.add('opacity-75');
+            guideFindCitationsBtn.innerHTML = `
+                <div class="spinner" style="width: 1rem; height: 1rem;"></div>
+                <span>Finding Citations...</span>
+            `;
+        }
         
         // Call the API service to find citations
         ApiService.findCitations(
