@@ -841,12 +841,22 @@ const KeywordManager = {
      * @param {Object} citations - The citations data from the API
      */
     highlightKeywordsInResume: function(resumeText, citations) {
-        // If no citations data, return
-        if (!citations || Object.keys(citations).length === 0) return;
+        console.log("highlightKeywordsInResume called with citations:", citations);
+        
+        // Even if no citations data, we'll still create the highlighted view
+        // but log a warning
+        if (!citations || Object.keys(citations).length === 0) {
+            console.log("Warning: No citations data available, but still creating highlighted view");
+            // Initialize empty citations object to avoid errors
+            citations = {};
+        }
         
         // Get the master resume textarea
         const masterResumeTextarea = document.getElementById('masterResume');
-        if (!masterResumeTextarea) return;
+        if (!masterResumeTextarea) {
+            console.error("Master resume textarea not found, cannot create highlighted view");
+            return;
+        }
         
         // Find the highlighted job description section to position our new section after it
         const highlightedJobDescriptionSection = document.getElementById('highlightedJobDescriptionSection');
@@ -890,6 +900,12 @@ const KeywordManager = {
             
             // Add event listener to the toggle button
             toggleButton.addEventListener('click', function() {
+                console.log("Toggle button clicked, current state:", {
+                    textareaDisplay: masterResumeTextarea.style.display,
+                    sectionDisplay: highlightedResumeSection.style.display
+                });
+                
+                // Force the display style to be explicitly set before checking
                 if (masterResumeTextarea.style.display === 'none') {
                     // Switch to edit view
                     masterResumeTextarea.style.display = 'block';
@@ -901,6 +917,7 @@ const KeywordManager = {
                         </svg>
                         Switch to Highlighted View
                     `;
+                    console.log("Switched to edit view");
                 } else {
                     // Switch to highlighted view
                     masterResumeTextarea.style.display = 'none';
@@ -912,6 +929,7 @@ const KeywordManager = {
                         </svg>
                         Switch to Edit View
                     `;
+                    console.log("Switched to highlighted view");
                 }
             });
             
@@ -953,8 +971,14 @@ const KeywordManager = {
             }
             
             // Hide the textarea and show the highlighted view by default
+            // Make sure to set the display style explicitly
             masterResumeTextarea.style.display = 'none';
             highlightedResumeSection.style.display = 'block';
+            
+            console.log("Created highlighted resume section and set display styles:", {
+                textareaDisplay: masterResumeTextarea.style.display,
+                sectionDisplay: highlightedResumeSection.style.display
+            });
         }
         
         // Get the content container
@@ -1012,6 +1036,9 @@ const KeywordManager = {
         
         // Process each priority level in the citations
         const processCitations = (priorityData, priority) => {
+            // Check if priorityData exists
+            if (!priorityData) return;
+            
             for (const [keyword, citation] of Object.entries(priorityData)) {
                 // Skip error messages
                 if (keyword === 'error') continue;
@@ -1089,6 +1116,7 @@ const KeywordManager = {
         
         // Update the container with the highlighted text
         contentContainer.innerHTML = highlightedText;
+        console.log("Updated highlighted resume content container with text");
         
         // Add a priority legend
         let legendContainer = document.getElementById('resumePriorityLegend');
