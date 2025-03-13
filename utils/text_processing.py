@@ -5,6 +5,7 @@ This module provides utility functions for text processing and manipulation.
 """
 
 import re
+import json
 from difflib import SequenceMatcher
 
 def sanitize_text(text):
@@ -147,3 +148,54 @@ def extract_context(text, keyword, context_size=100):
         context = context + "..."
     
     return context
+
+def parse_keywords_data(keywords_json):
+    """
+    Parse keywords data from JSON string into a structured format.
+    This consolidates the duplicate JSON parsing logic used in multiple endpoints.
+    
+    Args:
+        keywords_json (str): JSON string containing keywords data
+        
+    Returns:
+        tuple: (keywords_data, keywords_list) - The structured keywords data and a flat list of all keywords
+    """
+    keywords = []
+    keywords_data = None
+    
+    if not keywords_json:
+        return None, []
+    
+    try:
+        keywords_data = json.loads(keywords_json)
+        
+        # Extract keywords from the keywords_data structure
+        if isinstance(keywords_data, dict):
+            # If it's the enhanced structure with priority categories
+            # First check if it has the nested 'keywords' structure
+            if 'keywords' in keywords_data and isinstance(keywords_data['keywords'], dict):
+                # Handle the nested structure
+                for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                    if priority in keywords_data['keywords']:
+                        for item in keywords_data['keywords'][priority]:
+                            if isinstance(item, dict) and 'keyword' in item:
+                                keywords.append(item['keyword'])
+                            elif isinstance(item, str):
+                                keywords.append(item)
+            else:
+                # Handle the flat structure
+                for priority in ['high_priority', 'medium_priority', 'low_priority']:
+                    if priority in keywords_data:
+                        for item in keywords_data[priority]:
+                            if isinstance(item, dict) and 'keyword' in item:
+                                keywords.append(item['keyword'])
+                            elif isinstance(item, str):
+                                keywords.append(item)
+        elif isinstance(keywords_data, list):
+            # If it's a simple list of keywords
+            keywords = keywords_data
+    except Exception as e:
+        print(f"Error parsing keywords JSON: {str(e)}")
+        return None, []
+    
+    return keywords_data, keywords

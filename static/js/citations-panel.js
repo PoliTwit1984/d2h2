@@ -19,7 +19,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Add citations to the citations panel
-function addCitationsToPanel(section, citations) {
+// This function is now defined in citations-manager.js, but we keep this implementation
+// for backward compatibility
+window.addCitationsToPanel = function(section, citations) {
+    console.log(`Adding citations to panel for section: ${section}`);
+    console.log('Citations data structure:', JSON.stringify({
+        high_priority_count: citations.high_priority ? Object.keys(citations.high_priority).length : 0,
+        medium_priority_count: citations.medium_priority ? Object.keys(citations.medium_priority).length : 0,
+        low_priority_count: citations.low_priority ? Object.keys(citations.low_priority).length : 0,
+        fallback_count: citations.fallback_extraction ? Object.keys(citations.fallback_extraction).length : 0
+    }));
+    
     // Store citations in global variable
     citationsData[section] = citations;
     
@@ -60,7 +70,9 @@ function addCitationsToPanel(section, citations) {
          citations.low_priority || citations.fallback_extraction);
     
     if (isStructuredFormat) {
-        // Process each priority bucket
+        console.log('Processing structured citations format');
+        
+        // Define priority order and colors
         const priorities = [
             { key: 'high_priority', label: 'High Priority', color: 'text-red-700' },
             { key: 'medium_priority', label: 'Medium Priority', color: 'text-orange-700' },
@@ -70,19 +82,27 @@ function addCitationsToPanel(section, citations) {
         
         // Keep track of citation number
         let citationNumber = 1;
+        let totalCitations = 0;
         
-        // Add each priority section
+        // Create all priority sections first
+        const prioritySections = {};
+        
+        // Process each priority bucket in order
         for (const priority of priorities) {
             const priorityCitations = citations[priority.key];
             
             // Skip empty priority buckets
             if (!priorityCitations || Object.keys(priorityCitations).length === 0) {
+                console.log(`No citations found for ${priority.label}`);
                 continue;
             }
+            
+            console.log(`Processing ${Object.keys(priorityCitations).length} citations for ${priority.label}`);
             
             // Create a priority subsection
             const priorityDiv = document.createElement('div');
             priorityDiv.className = 'mb-4';
+            priorityDiv.dataset.priority = priority.key;
             
             // Add priority header
             const priorityHeader = document.createElement('h4');
@@ -90,14 +110,20 @@ function addCitationsToPanel(section, citations) {
             priorityHeader.textContent = priority.label;
             priorityDiv.appendChild(priorityHeader);
             
+            // Sort keywords alphabetically within each priority
+            const sortedKeywords = Object.keys(priorityCitations).sort();
+            
             // Add each citation in this priority
-            for (const [keyword, citation] of Object.entries(priorityCitations)) {
+            for (const keyword of sortedKeywords) {
+                const citation = priorityCitations[keyword];
+                
                 // Skip error messages
                 if (keyword === 'error') continue;
                 
                 const citationDiv = document.createElement('div');
                 citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
                 citationDiv.dataset.citationNumber = citationNumber;
+                citationDiv.dataset.priority = priority.key;
                 
                 const keywordHeader = document.createElement('h4');
                 keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
@@ -131,10 +157,21 @@ function addCitationsToPanel(section, citations) {
                 
                 // Increment citation number for the next citation
                 citationNumber++;
+                totalCitations++;
             }
             
-            sectionDiv.appendChild(priorityDiv);
+            // Store the priority section for later
+            prioritySections[priority.key] = priorityDiv;
         }
+        
+        // Add priority sections to the main section div in the correct order
+        for (const priority of priorities) {
+            if (prioritySections[priority.key]) {
+                sectionDiv.appendChild(prioritySections[priority.key]);
+            }
+        }
+        
+        console.log(`Added ${totalCitations} citations to panel`);
     } else {
         // Handle the old flat format for backward compatibility
         let citationNumber = 1;

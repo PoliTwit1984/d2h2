@@ -6,14 +6,19 @@ This module handles all interactions with the OpenAI API.
 
 import os
 import json
+import hashlib
 from openai import OpenAI
+from functools import lru_cache
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def call_openai_api(messages, model="gpt-4.5-preview", response_format=None, max_tokens=1000, temperature=0.3):
+# Simple in-memory cache for API responses
+response_cache = {}
+
+def get_cache_key(messages, model, response_format, max_tokens, temperature):
     """
-    Generic function to call the OpenAI API with error handling.
+    Generate a cache key based on the request parameters.
     
     Args:
         messages (list): List of message dictionaries for the conversation
@@ -23,12 +28,45 @@ def call_openai_api(messages, model="gpt-4.5-preview", response_format=None, max
         temperature (float): Temperature parameter for response generation
         
     Returns:
+        str: A hash string to use as cache key
+    """
+    # Convert messages to a string representation
+    messages_str = json.dumps(messages, sort_keys=True)
+    
+    # Convert response_format to a string representation if it exists
+    response_format_str = json.dumps(response_format, sort_keys=True) if response_format else "None"
+    
+    # Combine all parameters into a single string
+    params_str = f"{messages_str}|{model}|{response_format_str}|{max_tokens}|{temperature}"
+    
+    # Generate a hash of the parameters string
+    return hashlib.md5(params_str.encode()).hexdigest()
+
+def call_openai_api(messages, model="gpt-4.5-preview", response_format=None, max_tokens=1000, temperature=0.3, use_cache=True):
+    """
+    Generic function to call the OpenAI API with error handling.
+    
+    Args:
+        messages (list): List of message dictionaries for the conversation
+        model (str): The OpenAI model to use
+        response_format (dict, optional): Format specification for the response
+        max_tokens (int): Maximum number of tokens in the response
+        temperature (float): Temperature parameter for response generation
+        use_cache (bool): Whether to use the cache for this request
+    Returns:
         str: The content of the response
         
     Raises:
         Exception: If there's an error calling the API
     """
     try:
+        # Check cache if enabled
+        if use_cache:
+            cache_key = get_cache_key(messages, model, response_format, max_tokens, temperature)
+            if cache_key in response_cache:
+                print(f"Cache hit for request with key: {cache_key[:8]}...")
+                return response_cache[cache_key]
+        
         # Prepare the API call parameters
         params = {
             "model": model,
@@ -44,13 +82,21 @@ def call_openai_api(messages, model="gpt-4.5-preview", response_format=None, max
         # Call the API
         response = client.chat.completions.create(**params)
         
-        # Return the content
-        return response.choices[0].message.content.strip()
+        # Get the content
+        content = response.choices[0].message.content.strip()
+        
+        # Cache the response if caching is enabled
+        if use_cache:
+            cache_key = get_cache_key(messages, model, response_format, max_tokens, temperature)
+            response_cache[cache_key] = content
+            print(f"Cached response with key: {cache_key[:8]}...")
+        
+        return content
     except Exception as e:
         print(f"Error calling OpenAI API: {str(e)}")
         raise
 
-def get_json_response(messages, max_tokens=1000, temperature=0.3):
+def get_json_response(messages, max_tokens=1000, temperature=0.3, use_cache=True):
     """
     Call the OpenAI API and get a JSON response.
     
@@ -58,7 +104,7 @@ def get_json_response(messages, max_tokens=1000, temperature=0.3):
         messages (list): List of message dictionaries for the conversation
         max_tokens (int): Maximum number of tokens in the response
         temperature (float): Temperature parameter for response generation
-        
+        use_cache (bool): Whether to use the cache for this request
     Returns:
         dict: The parsed JSON response
         
@@ -71,7 +117,8 @@ def get_json_response(messages, max_tokens=1000, temperature=0.3):
             messages=messages,
             response_format={"type": "json_object"},
             max_tokens=max_tokens,
-            temperature=temperature
+            temperature=temperature,
+            use_cache=use_cache
         )
         
         # Log the full response for debugging
@@ -309,7 +356,7 @@ def construct_minimal_json(content):
     
     return result
 
-def get_text_response(messages, max_tokens=1000, temperature=0.3):
+def get_text_response(messages, max_tokens=1000, temperature=0.3, use_cache=True):
     """
     Call the OpenAI API and get a text response.
     
@@ -317,7 +364,7 @@ def get_text_response(messages, max_tokens=1000, temperature=0.3):
         messages (list): List of message dictionaries for the conversation
         max_tokens (int): Maximum number of tokens in the response
         temperature (float): Temperature parameter for response generation
-        
+        use_cache (bool): Whether to use the cache for this request
     Returns:
         str: The text response
         
@@ -328,7 +375,8 @@ def get_text_response(messages, max_tokens=1000, temperature=0.3):
         return call_openai_api(
             messages=messages,
             max_tokens=max_tokens,
-            temperature=temperature
+            temperature=temperature,
+            use_cache=use_cache
         )
     except Exception as e:
         print(f"Error getting text response: {str(e)}")

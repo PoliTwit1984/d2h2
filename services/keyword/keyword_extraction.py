@@ -405,6 +405,12 @@ def extract_keywords(job_description, master_resume=None, job_title=None, compan
             total_duration = time.time() - start_time
             log_debug(f"Keyword extraction process completed in {total_duration:.2f} seconds")
             
+            # Attach the original keywords structure to the all_keywords list for reference
+            # This will help preserve priority information when passing to other functions
+            if isinstance(all_keywords, list) and len(all_keywords) > 0:
+                all_keywords.original_keywords = keywords_data
+                log_debug("Attached original keywords structure to all_keywords list")
+            
             return keywords_data, all_keywords, citations
             
         except Exception as e:

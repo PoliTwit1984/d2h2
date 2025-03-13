@@ -42,6 +42,20 @@ const CitationsManager = {
      * @param {Object} citations - The citations data
      */
     addCitationsToPanel: function(section, citations) {
+        // Use the implementation from citations-panel.js
+        if (typeof window.addCitationsToPanel === 'function') {
+            console.log("Using addCitationsToPanel from citations-panel.js");
+            window.addCitationsToPanel(section, citations);
+            
+            // Show the Create Profile button after citations are found
+            if (section === 'keywords') {
+                this.showCreateProfileButton();
+            }
+            return;
+        }
+        
+        console.log("Using fallback addCitationsToPanel implementation");
+        
         const citationsContent = document.getElementById('citationsContent');
         
         if (!citationsContent) {
@@ -128,39 +142,53 @@ const CitationsManager = {
                 priorityHeader.textContent = priority.label;
                 priorityDiv.appendChild(priorityHeader);
                 
-                // Add each citation in this priority
-                for (const [keyword, citation] of Object.entries(priorityCitations)) {
-                    // Skip error messages
-                    if (keyword === 'error') continue;
-                    
-                    // Extract citation text based on format
-                    let citationText = '';
-                    if (typeof citation === 'string') {
-                        citationText = citation;
-                    } else if (typeof citation === 'object' && citation.citation) {
-                        citationText = citation.citation;
-                    } else {
-                        console.warn(`Citation for "${keyword}" is not in a recognized format:`, citation);
-                        continue;
-                    }
-                    
-                    const citationDiv = document.createElement('div');
-                    citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
-                    
-                    // Create the keyword header
-                    const keywordHeader = document.createElement('h4');
-                    keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
-                    keywordHeader.textContent = keyword;
-                    citationDiv.appendChild(keywordHeader);
-                    
-                    const citationParagraph = document.createElement('p');
-                    citationParagraph.className = 'text-xs text-gray-700';
-                    citationParagraph.textContent = citationText;
-                    citationDiv.appendChild(citationParagraph);
-                    
-                    priorityDiv.appendChild(citationDiv);
-                    totalCitations++;
+            // Sort keywords alphabetically within each priority
+            const sortedKeywords = Object.keys(priorityCitations).sort();
+            
+            // Add each citation in this priority
+            for (const keyword of sortedKeywords) {
+                const citation = priorityCitations[keyword];
+                
+                // Skip error messages
+                if (keyword === 'error') continue;
+                
+                // Extract citation text based on format
+                let citationText = '';
+                if (typeof citation === 'string') {
+                    citationText = citation;
+                } else if (typeof citation === 'object' && citation.citation) {
+                    citationText = citation.citation;
+                } else {
+                    console.warn(`Citation for "${keyword}" is not in a recognized format:`, citation);
+                    continue;
                 }
+                
+                const citationDiv = document.createElement('div');
+                citationDiv.className = 'mb-3 p-2 bg-gray-50 rounded border border-gray-200';
+                citationDiv.dataset.priority = priority.key;
+                
+                // Create the keyword header
+                const keywordHeader = document.createElement('h4');
+                keywordHeader.className = `text-sm font-semibold mb-1 ${priority.color}`;
+                keywordHeader.textContent = keyword;
+                citationDiv.appendChild(keywordHeader);
+                
+                const citationParagraph = document.createElement('p');
+                citationParagraph.className = 'text-xs text-gray-700';
+                citationParagraph.textContent = citationText;
+                citationDiv.appendChild(citationParagraph);
+                
+                // If there's an exact phrase, display it
+                if (typeof citation === 'object' && citation.exact_phrase) {
+                    const exactPhraseDiv = document.createElement('div');
+                    exactPhraseDiv.className = 'mt-1 text-xs';
+                    exactPhraseDiv.innerHTML = `<span class="font-semibold">Exact phrase:</span> <span class="${priority.color.replace('text-', 'bg-').replace('700', '100')} px-1 py-0.5 rounded">${citation.exact_phrase}</span>`;
+                    citationDiv.appendChild(exactPhraseDiv);
+                }
+                
+                priorityDiv.appendChild(citationDiv);
+                totalCitations++;
+            }
                 
                 if (priorityDiv.childNodes.length > 1) { // Only add if there are actual citations
                     sectionContainer.appendChild(priorityDiv);

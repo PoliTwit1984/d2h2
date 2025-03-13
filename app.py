@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 # Import services
 from services.keyword_service import extract_keywords, highlight_keywords
 from services.resume_service import generate_career_profile, generate_core_competencies
+from utils.text_processing import parse_keywords_data
 
 # Load environment variables from .env file
 load_dotenv()
@@ -83,23 +84,9 @@ def generate():
     company_name = request.form.get('company_name', '')
     industry = request.form.get('industry', '')
     
-    # Parse keywords if provided
-    provided_keywords = None
-    if keywords_json:
-        try:
-            import json
-            provided_keywords = json.loads(keywords_json)
-        except:
-            pass
-    
-    # Parse structured keywords data if provided
-    keywords_data = None
-    if keywords_data_json:
-        try:
-            import json
-            keywords_data = json.loads(keywords_data_json)
-        except:
-            pass
+    # Parse keywords and related data
+    provided_keywords, _ = parse_keywords_data(keywords_json)
+    keywords_data, _ = parse_keywords_data(keywords_data_json)
     
     # Parse citations if provided
     existing_citations = None
@@ -107,8 +94,8 @@ def generate():
         try:
             import json
             existing_citations = json.loads(citations_json)
-        except:
-            pass
+        except Exception as e:
+            print(f"Error parsing citations JSON: {str(e)}")
     
     # Check if required fields are provided
     if not job_description or not master_resume:
@@ -159,23 +146,9 @@ def generate_competencies():
     company_name = request.form.get('company_name', '')
     industry = request.form.get('industry', '')
     
-    # Parse keywords if provided
-    provided_keywords = None
-    if keywords_json:
-        try:
-            import json
-            provided_keywords = json.loads(keywords_json)
-        except:
-            pass
-    
-    # Parse structured keywords data if provided
-    keywords_data = None
-    if keywords_data_json:
-        try:
-            import json
-            keywords_data = json.loads(keywords_data_json)
-        except:
-            pass
+    # Parse keywords and related data
+    provided_keywords, _ = parse_keywords_data(keywords_json)
+    keywords_data, _ = parse_keywords_data(keywords_data_json)
     
     # Parse citations if provided
     existing_citations = None
@@ -183,8 +156,8 @@ def generate_competencies():
         try:
             import json
             existing_citations = json.loads(citations_json)
-        except:
-            pass
+        except Exception as e:
+            print(f"Error parsing citations JSON: {str(e)}")
     
     # Check if required fields are provided
     if not job_description or not master_resume:
@@ -345,41 +318,8 @@ def find_keywords_in_resume():
     company_name = request.form.get('company_name', '')
     industry = request.form.get('industry', '')
     
-    # Parse keywords if provided
-    keywords = []
-    keywords_data = None
-    if keywords_json:
-        try:
-            import json
-            keywords_data = json.loads(keywords_json)
-            
-            # Extract keywords from the keywords_data structure
-            if isinstance(keywords_data, dict):
-                # If it's the enhanced structure with priority categories
-                # First check if it has the nested 'keywords' structure
-                if 'keywords' in keywords_data and isinstance(keywords_data['keywords'], dict):
-                    # Handle the nested structure
-                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                        if priority in keywords_data['keywords']:
-                            for item in keywords_data['keywords'][priority]:
-                                if isinstance(item, dict) and 'keyword' in item:
-                                    keywords.append(item['keyword'])
-                                elif isinstance(item, str):
-                                    keywords.append(item)
-                else:
-                    # Handle the flat structure
-                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                        if priority in keywords_data:
-                            for item in keywords_data[priority]:
-                                if isinstance(item, dict) and 'keyword' in item:
-                                    keywords.append(item['keyword'])
-                                elif isinstance(item, str):
-                                    keywords.append(item)
-            elif isinstance(keywords_data, list):
-                # If it's a simple list of keywords
-                keywords = keywords_data
-        except Exception as e:
-            print(f"Error parsing keywords JSON: {str(e)}")
+    # Parse keywords data
+    keywords_data, keywords = parse_keywords_data(keywords_json)
     
     # Check if required fields are provided
     if not master_resume or not keywords:
@@ -436,40 +376,8 @@ def find_citations():
     company_name = request.form.get('company_name', '')
     industry = request.form.get('industry', '')
     
-    # Parse keywords if provided
-    keywords = []
-    if keywords_json:
-        try:
-            import json
-            keywords_data = json.loads(keywords_json)
-            
-            # Extract keywords from the keywords_data structure
-            if isinstance(keywords_data, dict):
-                # If it's the enhanced structure with priority categories
-                # First check if it has the nested 'keywords' structure
-                if 'keywords' in keywords_data and isinstance(keywords_data['keywords'], dict):
-                    # Handle the nested structure
-                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                        if priority in keywords_data['keywords']:
-                            for item in keywords_data['keywords'][priority]:
-                                if isinstance(item, dict) and 'keyword' in item:
-                                    keywords.append(item['keyword'])
-                                elif isinstance(item, str):
-                                    keywords.append(item)
-                else:
-                    # Handle the flat structure
-                    for priority in ['high_priority', 'medium_priority', 'low_priority']:
-                        if priority in keywords_data:
-                            for item in keywords_data[priority]:
-                                if isinstance(item, dict) and 'keyword' in item:
-                                    keywords.append(item['keyword'])
-                                elif isinstance(item, str):
-                                    keywords.append(item)
-            elif isinstance(keywords_data, list):
-                # If it's a simple list of keywords
-                keywords = keywords_data
-        except Exception as e:
-            print(f"Error parsing keywords JSON: {str(e)}")
+    # Parse keywords data
+    keywords_data, keywords = parse_keywords_data(keywords_json)
     
     # Check if required fields are provided
     if not master_resume or not keywords:

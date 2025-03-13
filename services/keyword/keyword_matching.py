@@ -232,10 +232,46 @@ def find_keyword_citations(keywords, resume_text, job_title='', company_name='',
                                 keyword_list.append(item)
                                 priority_keywords[priority].append(item)
         elif isinstance(keywords, list):
-            # Simple list of keywords
-            keyword_list = keywords
-            # Put all in medium priority if no priority info
-            priority_keywords["medium_priority"] = keyword_list
+            # For a simple list of keywords, try to extract priority information from the original structure
+            # Check if we have a global keywords structure with priority information
+            if hasattr(keywords, 'original_keywords') and isinstance(keywords.original_keywords, dict):
+                original_keywords = keywords.original_keywords
+                # Process the original keywords structure to extract priority information
+                if "keywords" in original_keywords:
+                    for priority in ["high_priority", "medium_priority", "low_priority"]:
+                        if priority in original_keywords["keywords"]:
+                            for item in original_keywords["keywords"][priority]:
+                                if isinstance(item, dict) and "keyword" in item:
+                                    priority_keywords[priority].append(item["keyword"])
+                                elif isinstance(item, str):
+                                    priority_keywords[priority].append(item)
+                else:
+                    for priority in ["high_priority", "medium_priority", "low_priority"]:
+                        if priority in original_keywords:
+                            for item in original_keywords[priority]:
+                                if isinstance(item, dict) and "keyword" in item:
+                                    priority_keywords[priority].append(item["keyword"])
+                                elif isinstance(item, str):
+                                    priority_keywords[priority].append(item)
+            
+            # If we couldn't extract priority information, distribute keywords evenly
+            if all(len(priority_keywords[p]) == 0 for p in ["high_priority", "medium_priority", "low_priority"]):
+                log_debug("No priority information found, distributing keywords evenly")
+                keyword_list = keywords
+                # Distribute keywords evenly across priority buckets
+                total_keywords = len(keyword_list)
+                third = total_keywords // 3
+                
+                # Assign first third to high priority
+                priority_keywords["high_priority"] = keyword_list[:third]
+                # Assign second third to medium priority
+                priority_keywords["medium_priority"] = keyword_list[third:2*third]
+                # Assign last third to low priority
+                priority_keywords["low_priority"] = keyword_list[2*third:]
+                
+                log_debug(f"Distributed {len(priority_keywords['high_priority'])} to high, " +
+                         f"{len(priority_keywords['medium_priority'])} to medium, " +
+                         f"{len(priority_keywords['low_priority'])} to low priority")
         
         # Sanitize the keywords
         for keyword in keyword_list:
