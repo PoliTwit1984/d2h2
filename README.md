@@ -1,58 +1,93 @@
-# dumped2hire
+# Dumped2Hire
 
-A web application that helps job seekers transform their resumes into targeted career profiles that get them hired. The application analyzes job descriptions, extracts important keywords, finds evidence of those keywords in your resume, and generates tailored content to help you stand out in the application process.
+<div align="center">
+  <img src="static/images/dumped2hirelogo.png" alt="Dumped2Hire Logo" width="300"/>
+  <p><em>Transform your resume into a targeted career profile that gets you hired</em></p>
+</div>
 
-## Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- **Keyword Extraction**: Automatically identifies and prioritizes important keywords from job descriptions
-- **Resume Analysis**: Scans your master resume to find evidence of the extracted keywords
-- **Citation Generation**: Creates citations that demonstrate your experience with each keyword
-- **Career Profile Generator**: Creates a concise, impactful career profile statement tailored to specific job descriptions
-- **Core Competencies**: Generates a list of core competencies based on the job requirements and your experience
-- **Guided Interface**: Step-by-step guide to help you through the entire process
+## 📋 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Complete Workflow](#complete-workflow)
+- [Technical Implementation](#technical-implementation)
+- [Getting Started](#getting-started)
+- [Development Guide](#development-guide)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-## Project Structure
+## 🔍 Overview
+
+Dumped2Hire is a web application that helps job seekers transform their resumes into targeted career profiles that get them hired. The application analyzes job descriptions, extracts important keywords, finds evidence of those keywords in your resume, and generates tailored content to help you stand out in the application process.
+
+## ✨ Features
+
+- **🔑 Keyword Extraction**: Automatically identifies and prioritizes important keywords from job descriptions
+- **📄 Resume Analysis**: Scans your master resume to find evidence of the extracted keywords
+- **📝 Citation Generation**: Creates citations that demonstrate your experience with each keyword
+- **👤 Career Profile Generator**: Creates a concise, impactful career profile statement tailored to specific job descriptions
+- **💼 Core Competencies**: Generates a list of core competencies based on the job requirements and your experience
+- **🧭 Guided Interface**: Step-by-step guide to help you through the entire process
+
+## 🏗️ Project Structure
+
+<details>
+<summary>Click to expand project structure</summary>
 
 ### Backend (Python)
 
-- **app.py**: Main Flask application with API endpoints
-- **services/**: Core functionality modules
-  - **keyword_service.py**: Entry point for keyword-related functionality
-  - **resume_service.py**: Handles career profile and competencies generation
-  - **openai_service.py**: Interface for OpenAI API calls
-  - **keyword/**: Specialized keyword processing modules
-    - **keyword_extraction.py**: Extracts keywords from job descriptions
-    - **keyword_matching.py**: Finds keywords in resumes and generates citations
-    - **keyword_highlighting.py**: Highlights keywords in text
-    - **keyword_utils.py**: Utility functions for keyword processing
+| Component | Description |
+|-----------|-------------|
+| **app.py** | Main Flask application with API endpoints |
+| **services/** | Core functionality modules |
+| &nbsp;&nbsp;**keyword_service.py** | Entry point for keyword-related functionality |
+| &nbsp;&nbsp;**resume_service.py** | Handles career profile and competencies generation |
+| &nbsp;&nbsp;**openai_service.py** | Interface for OpenAI API calls |
+| &nbsp;&nbsp;**keyword/** | Specialized keyword processing modules |
+| &nbsp;&nbsp;&nbsp;&nbsp;**keyword_extraction.py** | Extracts keywords from job descriptions |
+| &nbsp;&nbsp;&nbsp;&nbsp;**keyword_matching.py** | Finds keywords in resumes and generates citations |
+| &nbsp;&nbsp;&nbsp;&nbsp;**keyword_highlighting.py** | Highlights keywords in text |
+| &nbsp;&nbsp;&nbsp;&nbsp;**keyword_utils.py** | Utility functions for keyword processing |
 
 ### Frontend (JavaScript)
 
-- **static/js/modules/**: Modular JavaScript components
-  - **keyword-manager.js**: Manages keyword extraction and display
-  - **citations-manager.js**: Handles citation generation and display
-  - **profile-manager.js**: Manages career profile generation
-  - **competencies-manager.js**: Handles core competencies generation
-  - **ui-manager.js**: Manages UI state and transitions
-  - **api-service.js**: Handles API calls to the backend
-- **static/js/**: UI component scripts
-  - **main.js**: Main application logic
-  - **guide-panel.js**: Handles the guided interface
-  - **citations-panel.js**: Controls the citations panel
-  - **keywords-panel.js**: Manages the keywords panel
-  - **form-handler.js**: Processes form submissions
-  - **ui-utils.js**: UI utility functions
+| Component | Description |
+|-----------|-------------|
+| **static/js/modules/** | Modular JavaScript components |
+| &nbsp;&nbsp;**keyword-manager.js** | Manages keyword extraction and display |
+| &nbsp;&nbsp;**citations-manager.js** | Handles citation generation and display |
+| &nbsp;&nbsp;**profile-manager.js** | Manages career profile generation |
+| &nbsp;&nbsp;**competencies-manager.js** | Handles core competencies generation |
+| &nbsp;&nbsp;**ui-manager.js** | Manages UI state and transitions |
+| &nbsp;&nbsp;**api-service.js** | Handles API calls to the backend |
+| **static/js/** | UI component scripts |
+| &nbsp;&nbsp;**main.js** | Main application logic |
+| &nbsp;&nbsp;**guide-panel.js** | Handles the guided interface |
+| &nbsp;&nbsp;**citations-panel.js** | Controls the citations panel |
+| &nbsp;&nbsp;**keywords-panel.js** | Manages the keywords panel |
+| &nbsp;&nbsp;**form-handler.js** | Processes form submissions |
+| &nbsp;&nbsp;**ui-utils.js** | UI utility functions |
 
 ### Templates and CSS
 
-- **templates/**: HTML templates
-  - **index.html**: Main application page
-  - **customized_resume.html**: Resume display template
-  - **result_message.html**: Result message template
-- **static/css/**: Styling
-  - **custom.css**: Custom styles beyond Tailwind CSS
+| Component | Description |
+|-----------|-------------|
+| **templates/** | HTML templates |
+| &nbsp;&nbsp;**index.html** | Main application page |
+| &nbsp;&nbsp;**customized_resume.html** | Resume display template |
+| &nbsp;&nbsp;**result_message.html** | Result message template |
+| **static/css/** | Styling |
+| &nbsp;&nbsp;**custom.css** | Custom styles beyond Tailwind CSS |
 
-## Complete Workflow
+</details>
+
+## 🔄 Complete Workflow
+
+<details>
+<summary>Click to expand workflow details</summary>
 
 ### 1. Input Phase
 
@@ -108,16 +143,23 @@ A web application that helps job seekers transform their resumes into targeted c
    - User can save the career profile, competencies, and citations
    - Files are downloaded in text format for easy integration into resumes and cover letters
 
-## Technical Implementation
+</details>
+
+## 🔧 Technical Implementation
+
+<details>
+<summary>Click to expand technical details</summary>
 
 ### API Endpoints
 
-- **/extract-keywords**: Extracts keywords from job description
-- **/find-keywords-in-resume**: Finds keywords in the master resume
-- **/find-citations**: Generates citations for keywords
-- **/generate**: Creates a tailored career profile
-- **/generate-competencies**: Creates core competencies
-- **/save-profile**, **/save-competencies**, **/save-citations**: Save results to files
+| Endpoint | Description |
+|----------|-------------|
+| **/extract-keywords** | Extracts keywords from job description |
+| **/find-keywords-in-resume** | Finds keywords in the master resume |
+| **/find-citations** | Generates citations for keywords |
+| **/generate** | Creates a tailored career profile |
+| **/generate-competencies** | Creates core competencies |
+| **/save-profile**, **/save-competencies**, **/save-citations** | Save results to files |
 
 ### Data Flow
 
@@ -138,41 +180,56 @@ A web application that helps job seekers transform their resumes into targeted c
    - Global variables (window.keywordsData, window.citationsData) store application state
    - UI Manager handles transitions between different sections
 
-## Getting Started
+</details>
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.7+
 - pip
 - Modern web browser
+- OpenAI API key
 
 ### Installation
 
 1. Clone the repository
-```
+```bash
 git clone https://github.com/yourusername/dumped2hire.git
 cd dumped2hire
 ```
 
 2. Install dependencies
-```
+```bash
 pip install -r requirements.txt
 ```
 
 3. Set up environment variables
-```
+```bash
 cp .env.example .env
 # Edit .env with your configuration (including OpenAI API key)
 ```
 
 4. Run the application
-```
+```bash
 python app.py
 ```
 
 5. Open your browser and navigate to `http://localhost:5001`
 
-## Development Guide
+### Note on Experimental UIs
+
+This repository contains experimental UI components in the following directories:
+- `demo/` - Basic demo interface
+- `demolanding/` - Next.js landing page prototype
+- `demoui/` - Next.js UI components prototype
+
+These directories are excluded from Git tracking via the `.gitignore` file as they are experimental and not part of the core application.
+
+## 👨‍💻 Development Guide
+
+<details>
+<summary>Click to expand development guide</summary>
 
 ### Adding New Features
 
@@ -197,15 +254,23 @@ python app.py
    - Test edge cases such as empty inputs or very large inputs
    - Verify that error messages are displayed appropriately
 
-## Troubleshooting
+</details>
+
+## ❓ Troubleshooting
 
 See the [fixme.md](fixme.md) file for known issues and their potential solutions.
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - Inspired by the need to help job seekers stand out in competitive markets
 - Special thanks to all contributors and beta testers
+
+---
+
+<div align="center">
+  <p>Made with ❤️ for job seekers everywhere</p>
+</div>
