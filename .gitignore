@@ -52,3 +52,8 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Demo and UI components (experimental)
+demo/
+demolanding/
+demoui/
